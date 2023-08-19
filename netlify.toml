@@ -1,8 +1,7 @@
 [build]
 command = "npm run build"
-publish = "website/build"
+publish = "client/.next"
 functions = "api/build"
-base = "/"
 
 [dev]
 command = "npm run start"
