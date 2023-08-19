@@ -67,7 +67,7 @@ These things are required to run the development environment.
 
 ### 3.3. Run
 
-1. `netlify dev` to run the local runtime environment.
+1. `netlify dev --filter hushhushdiaries-api` to run the local runtime environment.
 
 ### 3.4. Packages used
 
