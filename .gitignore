@@ -132,3 +132,5 @@ dist
 # Build folders
 **/dist/
 **/build/
+# Local Netlify folder
+.netlify
