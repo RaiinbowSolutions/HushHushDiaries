@@ -1,6 +1,6 @@
 {
   "name": "hushhushdiaries-api",
-  "description": "",
+  "private": true,
   "scripts": {
     "start": "tsc --watch",
     "build": "tsc"
