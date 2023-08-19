@@ -13,7 +13,7 @@ api.options('/*', (request: Request, response: Response) => {
     return response.status(200).send({});
 });
 
-api.get('/*', (request: Request, response: Response) => {
+api.get('/', (request: Request, response: Response) => {
     let message = `Welcome to Hush Hush Diaries API.`;
     return response.status(200).json({
         message
