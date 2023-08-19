@@ -63,6 +63,7 @@ These things are required to run the development environment.
 2. `npm install -g npm` to update to latest version of npm.
 3. `npm install -g netlify-cli` to install the local runtime environment.
 4. `npm install` to install dependencies.
+5. `netlify env:import .env` to fetch environment configurations.
 
 ### 3.3. Run
 
