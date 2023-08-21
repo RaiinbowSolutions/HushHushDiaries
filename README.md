@@ -65,6 +65,10 @@ These things are required to run the development environment.
 4. `npm install` to install dependencies.
 5. `netlify env:import .env` to fetch environment configurations.
 
+### 3.2.1 How to link to Netlify.
+
+1. `netlify link` to form a link (id from netlify site configuration)
+
 ### 3.3. Run
 
 1. `netlify dev --filter hushhushdiaries-api` to run the local runtime environment.
