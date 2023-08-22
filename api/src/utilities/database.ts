@@ -9,7 +9,7 @@ import { PermissionTable } from "../models/permission.model";
 import { RequestTable } from "../models/request.model";
 import { UserCredentialTable, UserDetailTable, UserOptionTable, UserPermissionTable, UserTable } from "../models/user.model";
 
-interface DatabaseSchema {
+export interface DatabaseSchema {
     blogs: BlogTable,
     categories: CategoryTable,
     comments: CommentTable,
