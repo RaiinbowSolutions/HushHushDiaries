@@ -20,6 +20,11 @@ export interface CommentTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };
-export type Comment = Selectable<CommentTable>;
+export type SelectComment = Selectable<CommentTable>;
 export type CreateComment = Insertable<CommentTable>;
 export type UpdateComment = Updateable<CommentTable>;
+export type Comment = Omit<SelectComment, 'id' | 'author_id' | 'refecence_id'> & {
+    id: string,
+    author_id: string,
+    refecence_id: string,
+};

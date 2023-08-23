@@ -20,6 +20,11 @@ export interface RequestTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };
-export type Request = Selectable<RequestTable>;
+export type SelectRequest = Selectable<RequestTable>;
 export type CreateRequest = Insertable<RequestTable>;
 export type UpdateRequest = Updateable<RequestTable>;
+export type Request = Omit<SelectRequest, 'id' | 'reference_id' | 'sender_id'> & {
+    id: string,
+    reference_id: string,
+    sender_id: string,
+};

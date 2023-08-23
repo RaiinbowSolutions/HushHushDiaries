@@ -12,6 +12,9 @@ export interface CategoryTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };
-export type Category = Selectable<CategoryTable>;
+export type SelectCategory = Selectable<CategoryTable>;
 export type CreateCategory = Insertable<CategoryTable>;
 export type UpdateCategory = Updateable<CategoryTable>;
+export type Category = Omit<SelectCategory, 'id'> & {
+    id: string;
+};

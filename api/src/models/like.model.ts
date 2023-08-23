@@ -15,6 +15,11 @@ export interface LikeTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
-export type Like = Selectable<LikeTable>;
+export type SelectLike = Selectable<LikeTable>;
 export type CreateLike = Insertable<LikeTable>;
 export type UpdateLike = Updateable<LikeTable>;
+export type Like = Omit<SelectLike, 'id' | 'user_id' | 'refecence_id'> & {
+    id: string,
+    user_id: string,
+    refecence_id: string,
+};

@@ -22,6 +22,11 @@ export interface BlogTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };
-export type Blog = Selectable<BlogTable>;
+export type SelectBlog = Selectable<BlogTable>;
 export type CreateBlog = Insertable<BlogTable>;
 export type UpdateBlog = Updateable<BlogTable>;
+export type Blog = Omit<SelectBlog, 'id' | 'category_id' | 'author_id'> & {
+    id: string,
+    category_id: string,
+    author_id: string,
+}

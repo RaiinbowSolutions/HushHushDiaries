@@ -12,6 +12,9 @@ export interface PermissionTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };
-export type Permission = Selectable<PermissionTable>;
+export type SelectPermission = Selectable<PermissionTable>;
 export type CreatePermission = Insertable<PermissionTable>;
 export type UpdatePermission = Updateable<PermissionTable>;
+export type Permission = Omit<SelectPermission, 'id'> & {
+    id: string;
+};

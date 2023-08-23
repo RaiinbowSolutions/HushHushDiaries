@@ -22,11 +22,12 @@ export interface UserTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
-export type User = Selectable<UserTable>;
+export type SelectUser = Selectable<UserTable>;
 export type CreateUser = Insertable<UserTable>;
 export type UpdateUser = Updateable<UserTable>;
-export type FiltedUser = Omit<User, 'id'> & {
+export type User = Omit<SelectUser, 'id' | 'username'> & {
     id: string,
+    username: string,
 };
 
 /**
@@ -41,10 +42,10 @@ export interface UserPermissionTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
-export type UserPermission = Selectable<UserPermissionTable>;
+export type SelectUserPermission = Selectable<UserPermissionTable>;
 export type CreateUserPermission = Insertable<UserPermissionTable>;
 export type UpdateUserPermission = Updateable<UserPermissionTable>;
-export type filteredUserPermission = Omit<UserPermission, 'id' | 'user_id' | 'permission_id'> & {
+export type UserPermission = Omit<SelectUserPermission, 'id' | 'user_id' | 'permission_id'> & {
     id: string, 
     user_id: string, 
     permission_id: string,
@@ -72,10 +73,10 @@ export interface UserOptionTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
-export type UserOption = Selectable<UserOptionTable>;
+export type SelectUserOption = Selectable<UserOptionTable>;
 export type CreateUserOption = Insertable<UserOptionTable>;
 export type UpdateUserOption = Updateable<UserOptionTable>;
-export type filteredUserOption = Omit<UserOption, 'id' | 'user_id'> & {
+export type UserOption = Omit<SelectUserOption, 'id' | 'user_id'> & {
     id: string, 
     user_id: string,
 };
@@ -88,8 +89,7 @@ export interface UserDetailTable {
     user_id: bigint;
     firstname: string | undefined;
     lastname: string | undefined;
-    description: string | undefined;
-    birthday: ColumnType<Date, string | undefined, string | undefined>;
+    birthday: ColumnType<Date | undefined, string | undefined, string | undefined>;
     gender: GenderOption | undefined;
     pronouns: string | undefined;
     profile_description: string | undefined;
@@ -98,13 +98,14 @@ export interface UserDetailTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
-export type UserDetail = Selectable<UserDetailTable>;
+export type SelectUserDetail = Selectable<UserDetailTable>;
 export type CreateUserDetail = Insertable<UserDetailTable>;
 export type UpdateUserDetail = Updateable<UserDetailTable>;
-export type FiltedUserDetail = Omit<UserDetail, 'id' | 'user_id' | 'birthday'> & {
+export type UserDetail = Omit<SelectUserDetail, 'id' | 'user_id' | 'birthday' | 'gender'> & {
     id: string, 
     user_id: string,
     birthday: string,
+    gender: string,
 };
 
 /**
@@ -120,10 +121,10 @@ export interface UserCredentialTable {
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
-export type UserCredential = Selectable<UserCredentialTable>;
+export type SelectUserCredential = Selectable<UserCredentialTable>;
 export type CreateUserCredential = Insertable<UserCredentialTable>;
 export type UpdateUserCredential = Updateable<UserCredentialTable>;
-export type FiltedUserCredential = Omit<UserCredential, 'id' | 'user_id'> & {
+export type UserCredential = Omit<SelectUserCredential, 'id' | 'user_id'> & {
     id: string,
     user_id: string,
-}
+};
