@@ -1,8 +1,9 @@
 import { Request } from 'lambda-api';
 import { FiltedUser, User, UserOption } from "../models/user.model";
+import { UserService } from '../services/user.service';
 
-async function filterId(request: Request, id: bigint): string {
-    
+async function filterId(request: Request, id: bigint): Promise<string> {
+    return '';
 }
 
 async function filterUsers(request: Request, users: User[]): Promise<FiltedUser[]> {
@@ -18,7 +19,20 @@ async function filterUsers(request: Request, users: User[]): Promise<FiltedUser[
 }
 
 async function filterUser(request: Request, user: User): Promise<FiltedUser> {
+    let option = await UserService.options.selectOption(user.id);
+    let id = '';
+    let email = 'hidden';
+    let username = 'anonym';
 
+    if (option.email_show_state == 'public') email = user.email;
+    if (option.username_show_state == 'public') username = user.username || 'hidden';
+
+    return {
+        ...user,
+        id,
+        email,
+        username,
+    }
 }
 
 export const Filter = {
