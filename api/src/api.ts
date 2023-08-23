@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { APIGatewayEvent, Context } from 'aws-lambda';
 import lambda, { Request, Response } from 'lambda-api';
+import { UserRoute } from './routes/user.route';
 
 const api = lambda({
     base: '.netlify/functions/api'
@@ -19,6 +20,8 @@ api.get('/', (request: Request, response: Response) => {
         message
     });
 })
+
+api.register(UserRoute);
 
 api.finally(async () => {});
 
