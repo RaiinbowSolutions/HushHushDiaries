@@ -97,8 +97,8 @@ async function markAsApproved(blogId: bigint, database: Kysely<DatabaseSchema> |
     let result = await update(blogId, {approved: true, approved_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsPublished(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(commentId, {published: true, published_at: new Date().toUTCString()}, database);
+async function markAsPublished(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+    let result = await update(blogId, {published: true, published_at: new Date().toUTCString()}, database);
     return result;
 }
 
@@ -106,13 +106,13 @@ async function markAsPublished(commentId: bigint, database: Kysely<DatabaseSchem
 /// Blog Like Functions                             ///
 ///////////////////////////////////////////////////////
 
-async function countLikes(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countLikes(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('likes')
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(blogLikeIsListable(commentId))
+        .filterWhere(blogLikeIsListable(blogId))
         .as('total')
     )
     .executeTakeFirstOrThrow();
