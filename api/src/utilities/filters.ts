@@ -35,7 +35,7 @@ async function filterUser(request: Request, user: User): Promise<FiltedUser> {
     }
 }
 
-export const Filter = {
+export const Filters = {
     users: filterUsers,
     user: filterUser,
 }
