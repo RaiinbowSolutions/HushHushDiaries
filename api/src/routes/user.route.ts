@@ -2,8 +2,7 @@ import { API, RegisterOptions, Request, Response } from 'lambda-api';
 import { AuthenticatedMiddleware as Authenticated } from '../middleware/authenticated.middleware';
 import { UserService } from '../services/user.service';
 import { CreateDataResponse, CreatePaginationDataResponse } from '../utilities/responses';
-import { Filters } from '../utilities/filters';
-import { Validations } from '../utilities/validations';
+import { Validation } from '../utilities/validation';
 
 export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix;
@@ -20,10 +19,11 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.get(Prefix + BaseURI,
         Authenticated(),
         async (request: Request, response: Response) => {
-            let {limit, offset} = Validations.pagination(request);
+            let authentication = request.authentication;
+            let {limit, offset} = Validation.pagination(request);
             let total = await UserService.counts();
             let users = await UserService.selects(offset, limit);
-            let filteredUsers = await Filters.users(request, users);
+            let filteredUsers = await UserService.filters.users(authentication.id, users);
             return CreatePaginationDataResponse(request, response, filteredUsers, total);
         }
     );
@@ -31,9 +31,10 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.get(Prefix + BaseURI + '/[id]',
         Authenticated(),
         async (request: Request, response: Response) => {
-            let id = Validations.id(request);
+            let authentication = request.authentication;
+            let id = Validation.id(request);
             let user = await UserService.select(id);
-            let filteredUser = await Filters.user(request, user);
+            let filteredUser = await UserService.filters.user(authentication.id, user);
             return CreateDataResponse(request, response, filteredUser);
         }
     );
@@ -41,7 +42,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.get(Prefix + BaseURI + '/email/[email]',
         Authenticated(),
         async (request: Request, response: Response) => {
-            let email = Validations.email(request);
+            let email = Validation.email(request);
             let userId = await UserService.findUserIdByEmail(email);
 
             return response.redirect(308, `/${userId}`);
