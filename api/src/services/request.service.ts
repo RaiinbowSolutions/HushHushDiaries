@@ -9,7 +9,7 @@ import { CreateRequest, Request, UpdateRequest } from "../models/request.model";
 const requestIsListable: WhereExpressionFactory<DatabaseSchema, 'requests'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('requests.deleted', '!=', true),
-    ])
+    ]);
 }
 
 ///////////////////////////////////////////////////////

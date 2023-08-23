@@ -12,22 +12,22 @@ const userIsListable: WhereExpressionFactory<DatabaseSchema, 'users'> = (express
         expressionBuilder('users.validated', '!=', false),
         expressionBuilder('users.banned', '!=', true),
         expressionBuilder('users.deleted', '!=', true),
-    ])
+    ]);
 }
 const userOptionIsListable: WhereExpressionFactory<DatabaseSchema, 'user_options'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('user_options.deleted', '!=', true),
-    ])
+    ]);
 }
 const userDetailIsListable: WhereExpressionFactory<DatabaseSchema, 'user_details'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('user_details.deleted', '!=', true),
-    ])
+    ]);
 }
 const userCredentialIsListable: WhereExpressionFactory<DatabaseSchema, 'user_credentials'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('user_credentials.deleted', '!=', true),
-    ])
+    ]);
 }
 const userPermissionIsListable: (userId: bigint) => WhereExpressionFactory<DatabaseSchema, 'user_permissions'> = (userId) => {
     return (expressionBuilder) => {
@@ -36,8 +36,8 @@ const userPermissionIsListable: (userId: bigint) => WhereExpressionFactory<Datab
             expressionBuilder.or([
                 expressionBuilder('user_permissions.deleted', '!=', true),
             ]),
-        ])
-    }
+        ]);
+    };
 }
 
 ///////////////////////////////////////////////////////
