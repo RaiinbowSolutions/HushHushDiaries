@@ -1,12 +1,20 @@
+import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { CreateMessage, Message, UpdateMessage } from "../models/message.model";
+import { CreateMessage, Message, SelectMessage, UpdateMessage } from "../models/message.model";
+import { SelectUser } from '../models/user.model';
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
 ///////////////////////////////////////////////////////
 
-const DefaultMessage: Omit<CreateMessage, 'content' | 'sender_id' | 'reveiver_id' | 'topic'> = {
+const DefaultMessage: Omit<CreateMessage, 'content' | 'sender_id' | 'receiver_id' | 'topic'> = {
     reviewed: false,
     deleted: false,
 }
@@ -20,7 +28,7 @@ const MessageIsListable: WhereExpressionFactory<DatabaseSchema, 'messages'> = (e
         expressionBuilder('messages.deleted', '!=', true),
     ]);
 }
-const OutgoingMessageIsListable: (userId: Message['sender_id']) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
+const OutgoingMessageIsListable: (userId: SelectMessage['sender_id']) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('messages.sender_id', '=', userId),
@@ -30,10 +38,10 @@ const OutgoingMessageIsListable: (userId: Message['sender_id']) => WhereExpressi
         ]);
     };
 }
-const IncomingMessageIsListable: (userId: Message['reveiver_id']) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
+const IncomingMessageIsListable: (userId: SelectMessage['receiver_id']) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
-            expressionBuilder('messages.reveiver_id', '=', userId),
+            expressionBuilder('messages.receiver_id', '=', userId),
             expressionBuilder.or([
                 expressionBuilder('messages.deleted', '!=', true),
             ]),
@@ -58,7 +66,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectMessage[]> {
     let results = await database
     .selectFrom('messages')
     .selectAll()
@@ -69,7 +77,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message> {
+async function select(messageId: SelectMessage['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectMessage> {
     let result = await database
     .selectFrom('messages')
     .selectAll()
@@ -78,15 +86,15 @@ async function select(messageId: Message['id'], database: Kysely<DatabaseSchema>
 
     return result;
 }
-async function insert(userId: CreateMessage['sender_id'], reveiverId: CreateMessage['reveiver_id'], content: CreateMessage['content'], topic: CreateMessage['topic'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(userId: CreateMessage['sender_id'], receiverId: CreateMessage['receiver_id'], content: CreateMessage['content'], topic: CreateMessage['topic'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('messages')
-    .values({...DefaultMessage, sender_id: userId, reveiver_id: reveiverId, content, topic})
+    .values({...DefaultMessage, sender_id: userId, receiver_id: receiverId, content, topic})
     .executeTakeFirstOrThrow();
 
     return result;
 }
-async function update(messageId: Message['id'], updateMessageData: UpdateMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(messageId: SelectMessage['id'], updateMessageData: UpdateMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('messages')
     .where('id', '=', messageId)
@@ -95,7 +103,7 @@ async function update(messageId: Message['id'], updateMessageData: UpdateMessage
 
     return result;
 }
-async function Delete(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(messageId: SelectMessage['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('messages')
     .where('id', '=', messageId)
@@ -103,11 +111,11 @@ async function Delete(messageId: Message['id'], database: Kysely<DatabaseSchema>
 
     return result;
 }
-async function markAsDeleted(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(messageId: SelectMessage['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(messageId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(messageId: SelectMessage['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(messageId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -116,7 +124,7 @@ async function markAsReviewed(messageId: Message['id'], database: Kysely<Databas
 /// Message Outgoing Functions                      ///
 ///////////////////////////////////////////////////////
 
-async function countOutgoings(userId: Message['sender_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countOutgoings(userId: SelectMessage['sender_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('messages')
     .select(
@@ -129,7 +137,7 @@ async function countOutgoings(userId: Message['sender_id'], database: Kysely<Dat
 
     return result.total;
 }
-async function selectOutgoings(userId: Message['sender_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
+async function selectOutgoings(userId: SelectMessage['sender_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectMessage[]> {
     let results = await database
     .selectFrom('messages')
     .selectAll()
@@ -145,7 +153,7 @@ async function selectOutgoings(userId: Message['sender_id'], offset: number, lim
 /// Message Incoming Functions                      ///
 ///////////////////////////////////////////////////////
 
-async function countIncomings(userId: Message['reveiver_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countIncomings(userId: SelectMessage['receiver_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('messages')
     .select(
@@ -158,7 +166,7 @@ async function countIncomings(userId: Message['reveiver_id'], database: Kysely<D
 
     return result.total;
 }
-async function selectIncomings(userId: Message['reveiver_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
+async function selectIncomings(userId: SelectMessage['receiver_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectMessage[]> {
     let results = await database
     .selectFrom('messages')
     .selectAll()
@@ -168,6 +176,38 @@ async function selectIncomings(userId: Message['reveiver_id'], offset: number, l
     .execute();
 
     return results;
+}
+
+///////////////////////////////////////////////////////
+/// Message Filter Functions                        ///
+///////////////////////////////////////////////////////
+
+async function filterMessages(as: SelectUser['id'], messages: SelectMessage[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Message[] = [];
+
+        for (let message of messages) filtered.push(await filterMessage(as, message, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterMessage(as: SelectUser['id'], message: SelectMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message> {
+    let id = HashIds.encode(message.id);
+    let sender_id = HashIds.encode(message.sender_id);
+    let receiver_id = HashIds.encode(message.receiver_id);
+    let content = 'hidden';
+
+    if (as == message.sender_id || as == message.receiver_id) content = message.content;
+
+    return {
+        ...message,
+        id,
+        sender_id,
+        receiver_id,
+        content,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -183,10 +223,12 @@ export const PermissionService = {
     delete: Delete,
     markAsDeleted,
     markAsReviewed,
-
     countOutgoings,
     selectOutgoings,
-
     countIncomings,
     selectIncomings,
+    filters: {
+        messages: filterMessages,
+        message: filterMessage,
+    }
 }

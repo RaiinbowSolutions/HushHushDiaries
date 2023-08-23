@@ -1,6 +1,14 @@
+import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { CreatePermission, Permission, UpdatePermission } from "../models/permission.model";
+import { CreatePermission, Permission, SelectPermission, UpdatePermission } from "../models/permission.model";
+import { SelectUser } from "../models/user.model";
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -37,7 +45,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectPermission[]> {
     let results = await database
     .selectFrom('permisions')
     .selectAll()
@@ -48,7 +56,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(permissionId: Permission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission> {
+async function select(permissionId: SelectPermission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectPermission> {
     let result = await database
     .selectFrom('permisions')
     .selectAll()
@@ -65,7 +73,7 @@ async function insert(name: CreatePermission['name'], description: CreatePermiss
 
     return result;
 }
-async function update(permissionId: Permission['id'], updatePermissionData: UpdatePermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(permissionId: SelectPermission['id'], updatePermissionData: UpdatePermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('permisions')
     .where('id', '=', permissionId)
@@ -74,7 +82,7 @@ async function update(permissionId: Permission['id'], updatePermissionData: Upda
 
     return result;
 }
-async function Delete(permissionId: Permission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(permissionId: SelectPermission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('permisions')
     .where('id', '=', permissionId)
@@ -82,9 +90,33 @@ async function Delete(permissionId: Permission['id'], database: Kysely<DatabaseS
 
     return result;
 }
-async function markAsDeleted(permissionId: Permission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(permissionId: SelectPermission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(permissionId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
+}
+
+///////////////////////////////////////////////////////
+/// Permission Filter Functions                     ///
+///////////////////////////////////////////////////////
+
+async function filterPermissions(as: SelectUser['id'], permisions: SelectPermission[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Permission[] = [];
+
+        for (let permission of permisions) filtered.push(await filterPermission(as, permission, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterPermission(as: SelectUser['id'], request: SelectPermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission> {
+    let id = HashIds.encode(request.id);
+
+    return {
+        ...request,
+        id,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -99,4 +131,8 @@ export const PermissionService = {
     update,
     delete: Delete,
     markAsDeleted,
+    filters: {
+        permissions: filterPermissions,
+        permission: filterPermission,
+    }
 }

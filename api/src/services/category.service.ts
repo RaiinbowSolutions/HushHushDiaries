@@ -1,6 +1,14 @@
-import { Category, CreateCategory, UpdateCategory } from '../models/category.model';
+import 'dotenv/config';
+import { SelectCategory, CreateCategory, UpdateCategory, Category } from '../models/category.model';
+import { SelectUser } from '../models/user.model';
 import { Database, DatabaseSchema } from './../utilities/database';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -38,7 +46,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     return result.total;
 }
 
-async function selects(offset: number, limit:number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Category[]> {
+async function selects(offset: number, limit:number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectCategory[]> {
     let results = await database 
     .selectFrom('categories')
     .selectAll()
@@ -50,7 +58,7 @@ async function selects(offset: number, limit:number, database: Kysely<DatabaseSc
     return results;
 }
 
-async function select(categoryId: Category['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Category> {
+async function select(categoryId: SelectCategory['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectCategory> {
     let result = await database
     .selectFrom('categories')
     .selectAll()
@@ -69,7 +77,7 @@ async function insert(name: CreateCategory['name'], description: CreateCategory[
     return result;
 }
 
-async function update(categoryId: Category['id'], UpdateCategoryData: UpdateCategory, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(categoryId: SelectCategory['id'], UpdateCategoryData: UpdateCategory, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('categories')
     .where('id', '=', categoryId)
@@ -79,7 +87,7 @@ async function update(categoryId: Category['id'], UpdateCategoryData: UpdateCate
     return result;
 }
 
-async function Delete(categoryId: Category['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(categoryId: SelectCategory['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('categories')
     .where('id', '=', categoryId)
@@ -88,9 +96,33 @@ async function Delete(categoryId: Category['id'], database: Kysely<DatabaseSchem
     return result;
 }
 
-async function markAsDeleted(categoryId: Category['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(categoryId: SelectCategory['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(categoryId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
+}
+
+///////////////////////////////////////////////////////
+/// Category Filter Functions                       ///
+///////////////////////////////////////////////////////
+
+async function filterCategories(as: SelectUser['id'], categories: SelectCategory[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Category[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Category[] = [];
+
+        for (let category of categories) filtered.push(await filterCategory(as, category, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterCategory(as: SelectUser['id'], category: SelectCategory, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Category> {
+    let id = HashIds.encode(category.id);
+
+    return {
+        ...category,
+        id,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -105,4 +137,8 @@ export const CategoryService = {
     update, 
     delete: Delete, 
     markAsDeleted,
+    filters: {
+        categories: filterCategories,
+        category: filterCategory,
+    }
 }

@@ -1,7 +1,15 @@
+import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { Comment, CreateComment, UpdateComment } from "../models/comment.model";
-import { Like } from "../models/like.model";
+import { SelectComment, CreateComment, UpdateComment, Comment } from "../models/comment.model";
+import { SelectLike } from "../models/like.model";
+import { SelectUser } from "../models/user.model";
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -22,7 +30,7 @@ const CommentIsListable: WhereExpressionFactory<DatabaseSchema, 'comments'> = (e
         expressionBuilder('comments.deleted', '!=', true),
     ]);
 }
-const CommentLikeIsListable: (commentId: Like['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (commentId) => {
+const CommentLikeIsListable: (commentId: SelectLike['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (commentId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('likes.refecence_id', '=', commentId),
@@ -51,7 +59,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectComment[]> {
     let results = await database
     .selectFrom('comments')
     .selectAll()
@@ -62,7 +70,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment> {
+async function select(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectComment> {
     let result = await database
     .selectFrom('comments')
     .selectAll()
@@ -79,7 +87,7 @@ async function insert(userId: CreateComment['author_id'], content: CreateComment
 
     return result;
 }
-async function update(commentId: Comment['id'], updateCommentData: UpdateComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(commentId: SelectComment['id'], updateCommentData: UpdateComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('comments')
     .where('id', '=', commentId)
@@ -88,7 +96,7 @@ async function update(commentId: Comment['id'], updateCommentData: UpdateComment
 
     return result;
 }
-async function Delete(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('comments')
     .where('id', '=', commentId)
@@ -96,15 +104,15 @@ async function Delete(commentId: Comment['id'], database: Kysely<DatabaseSchema>
 
     return result;
 }
-async function markAsDeleted(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(commentId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(commentId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsApproved(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsApproved(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(commentId, {approved: true, approved_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -113,7 +121,7 @@ async function markAsApproved(commentId: Comment['id'], database: Kysely<Databas
 /// Comment Like Functions                          ///
 ///////////////////////////////////////////////////////
 
-async function countLikes(commentId: Like['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countLikes(commentId: SelectLike['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('likes')
     .select(
@@ -125,6 +133,34 @@ async function countLikes(commentId: Like['refecence_id'], database: Kysely<Data
     .executeTakeFirstOrThrow();
 
     return result.total;
+}
+
+///////////////////////////////////////////////////////
+/// Comment Filter Functions                        ///
+///////////////////////////////////////////////////////
+
+async function filterComments(as: SelectUser['id'], comments: SelectComment[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Comment[] = [];
+
+        for (let comment of comments) filtered.push(await filterComment(as, comment, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterComment(as: SelectUser['id'], comment: SelectComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment> {
+    let id = HashIds.encode(comment.id);
+    let author_id = HashIds.encode(comment.author_id);
+    let refecence_id = HashIds.encode(comment.refecence_id);
+
+    return {
+        ...comment,
+        id,
+        author_id,
+        refecence_id,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -141,6 +177,9 @@ export const PermissionService = {
     markAsDeleted,
     markAsReviewed,
     markAsApproved,
-
     countLikes,
+    filters: {
+        comments: filterComments,
+        comment: filterComment,
+    }
 }

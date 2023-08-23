@@ -1,6 +1,14 @@
+import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { CreateRequest, Request, UpdateRequest } from "../models/request.model";
+import { CreateRequest, Request, SelectRequest, UpdateRequest } from "../models/request.model";
+import { SelectUser } from "../models/user.model";
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -38,7 +46,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectRequest[]> {
     let results = await database
     .selectFrom('requests')
     .selectAll()
@@ -49,7 +57,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request> {
+async function select(requestId: SelectRequest['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectRequest> {
     let result = await database
     .selectFrom('requests')
     .selectAll()
@@ -66,7 +74,7 @@ async function insert(userId: CreateRequest['sender_id'], content: CreateRequest
 
     return result;
 }
-async function update(requestId: Request['id'], updateRequestData: UpdateRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(requestId: SelectRequest['id'], updateRequestData: UpdateRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('requests')
     .where('id', '=', requestId)
@@ -75,7 +83,7 @@ async function update(requestId: Request['id'], updateRequestData: UpdateRequest
 
     return result;
 }
-async function Delete(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(requestId: SelectRequest['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('requests')
     .where('id', '=', requestId)
@@ -83,13 +91,41 @@ async function Delete(requestId: Request['id'], database: Kysely<DatabaseSchema>
 
     return result;
 }
-async function markAsDeleted(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(requestId: SelectRequest['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(requestId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(requestId: SelectRequest['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(requestId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
+}
+
+///////////////////////////////////////////////////////
+/// Request Filter Functions                        ///
+///////////////////////////////////////////////////////
+
+async function filterRequests(as: SelectUser['id'], requests: SelectRequest[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Request[] = [];
+
+        for (let request of requests) filtered.push(await filterRequest(as, request, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterRequest(as: SelectUser['id'], request: SelectRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request> {
+    let id = HashIds.encode(request.id);
+    let reference_id = HashIds.encode(request.reference_id);
+    let sender_id = HashIds.encode(request.sender_id);
+
+    return {
+        ...request,
+        id,
+        reference_id,
+        sender_id,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -105,4 +141,8 @@ export const RequestService = {
     delete: Delete,
     markAsDeleted,
     markAsReviewed,
+    filters: {
+        requests: filterRequests,
+        request: filterRequest,
+    }
 }

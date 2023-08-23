@@ -1,6 +1,14 @@
+import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { CreateLike, Like, UpdateLike } from "../models/like.model";
+import { CreateLike, Like, SelectLike, UpdateLike } from "../models/like.model";
+import { SelectUser } from '../models/user.model';
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -37,7 +45,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Like[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectLike[]> {
     let results = await database
     .selectFrom('likes')
     .selectAll()
@@ -48,7 +56,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(likeId: Like['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Like> {
+async function select(likeId: SelectLike['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectLike> {
     let result = await database
     .selectFrom('likes')
     .selectAll()
@@ -77,7 +85,7 @@ async function insert(userId: CreateLike['user_id'], referenceType: CreateLike['
 
     return result;
 }
-async function update(likeId: Like['id'], updateLikeData: UpdateLike, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(likeId: SelectLike['id'], updateLikeData: UpdateLike, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('likes')
     .where('id', '=', likeId)
@@ -86,7 +94,7 @@ async function update(likeId: Like['id'], updateLikeData: UpdateLike, database: 
 
     return result;
 }
-async function Delete(likeId: Like['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(likeId: SelectLike['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('likes')
     .where('id', '=', likeId)
@@ -94,9 +102,37 @@ async function Delete(likeId: Like['id'], database: Kysely<DatabaseSchema> | Tra
 
     return result;
 }
-async function markAsDeleted(likeId: Like['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(likeId: SelectLike['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(likeId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
+}
+
+///////////////////////////////////////////////////////
+/// Like Filter Functions                           ///
+///////////////////////////////////////////////////////
+
+async function filterLikes(as: SelectUser['id'], likes: SelectLike[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Like[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Like[] = [];
+
+        for (let like of likes) filtered.push(await filterLike(as, like, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterLike(as: SelectUser['id'], like: SelectLike, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Like> {
+    let id = HashIds.encode(like.id);
+    let user_id = HashIds.encode(like.user_id);
+    let refecence_id = HashIds.encode(like.refecence_id);
+
+    return {
+        ...like,
+        id,
+        user_id,
+        refecence_id,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -111,4 +147,8 @@ export const LikeService = {
     update,
     delete: Delete,
     markAsDeleted,
+    filters: {
+        likes: filterLikes,
+        like: filterLike,
+    }
 }

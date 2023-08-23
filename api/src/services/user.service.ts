@@ -1,7 +1,14 @@
+import 'dotenv/config';
 import { Kysely, Transaction, WhereExpressionFactory, InsertResult, UpdateResult, DeleteResult } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { CreateUser, CreateUserCredential, CreateUserDetail, CreateUserOption, CreateUserPermission, UpdateUser, UpdateUserCredential, UpdateUserDetail, UpdateUserOption, User, UserCredential, UserDetail, UserOption, UserPermission } from "../models/user.model";
-import { Permission } from "../models/permission.model";
+import { CreateUser, CreateUserCredential, CreateUserDetail, CreateUserOption, CreateUserPermission, UpdateUser, UpdateUserCredential, UpdateUserDetail, UpdateUserOption, SelectUser, SelectUserCredential, SelectUserDetail, SelectUserOption, SelectUserPermission, User, UserDetail, UserOption, UserCredential } from "../models/user.model";
+import { SelectPermission } from "../models/permission.model";
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -48,7 +55,7 @@ const UserIsListable: WhereExpressionFactory<DatabaseSchema, 'users'> = (express
         expressionBuilder('users.deleted', '!=', true),
     ]);
 }
-const UserPermissionIsListable: (userId: UserPermission['id']) => WhereExpressionFactory<DatabaseSchema, 'user_permissions'> = (userId) => {
+const UserPermissionIsListable: (userId: SelectUserPermission['id']) => WhereExpressionFactory<DatabaseSchema, 'user_permissions'> = (userId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('user_permissions.user_id', '=', userId),
@@ -76,7 +83,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUser[]> {
     let results = await database
     .selectFrom('users')
     .selectAll()
@@ -87,7 +94,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User> {
+async function select(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUser> {
     let result = await database
     .selectFrom('users')
     .selectAll()
@@ -130,7 +137,7 @@ async function insert(email: CreateUser['email'], password: CreateUserCredential
 
     return result;
 }
-async function update(userId: User['id'], updateUserData: UpdateUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(userId: SelectUser['id'], updateUserData: UpdateUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('users')
     .where('id', '=', userId)
@@ -139,7 +146,7 @@ async function update(userId: User['id'], updateUserData: UpdateUser, database: 
 
     return result;
 }
-async function Delete(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database.transaction().execute(async (transaction) => {
         let numDeletedRows = BigInt(0);
 
@@ -181,7 +188,7 @@ async function Delete(userId: User['id'], database: Kysely<DatabaseSchema> | Tra
 
     return result;
 }
-async function markAsDeleted(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database.transaction().execute(async (transaction) => {
         let numUpdatedRows = BigInt(0);
 
@@ -243,11 +250,11 @@ async function markAsDeleted(userId: User['id'], database: Kysely<DatabaseSchema
 
     return result;
 }
-async function markAsBanned(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsBanned(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(userId, {banned: true, banned_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsValidated(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsValidated(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(userId, {validated: true, validated_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -256,7 +263,7 @@ async function markAsValidated(userId: User['id'], database: Kysely<DatabaseSche
 /// User Option Functions                           ///
 ///////////////////////////////////////////////////////
 
-async function selectOption(userId: UserOption['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption> {
+async function selectOption(userId: SelectUserOption['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUserOption> {
     let result = await database
     .selectFrom('user_options')
     .selectAll()
@@ -265,7 +272,7 @@ async function selectOption(userId: UserOption['user_id'], database: Kysely<Data
 
     return result;
 }
-async function updateOption(userId: UserOption['user_id'], updateUserOptionData: UpdateUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function updateOption(userId: SelectUserOption['user_id'], updateUserOptionData: UpdateUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_options')
     .where('user_id', '=', userId)
@@ -279,7 +286,7 @@ async function updateOption(userId: UserOption['user_id'], updateUserOptionData:
 /// User Detail Functions                           ///
 ///////////////////////////////////////////////////////
 
-async function selectDetail(userId: UserDetail['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail> {
+async function selectDetail(userId: SelectUserDetail['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUserDetail> {
     let result = await database
     .selectFrom('user_details')
     .selectAll()
@@ -288,7 +295,7 @@ async function selectDetail(userId: UserDetail['user_id'], database: Kysely<Data
 
     return result;
 }
-async function updateDetail(userId: UserDetail['user_id'], updateUserDetailData: UpdateUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function updateDetail(userId: SelectUserDetail['user_id'], updateUserDetailData: UpdateUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_details')
     .where('user_id', '=', userId)
@@ -302,7 +309,7 @@ async function updateDetail(userId: UserDetail['user_id'], updateUserDetailData:
 /// User Credential Functions                       ///
 ///////////////////////////////////////////////////////
 
-async function selectCredential(userId: UserCredential['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential> {
+async function selectCredential(userId: SelectUserCredential['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUserCredential> {
     let result = await database
     .selectFrom('user_credentials')
     .selectAll()
@@ -311,7 +318,7 @@ async function selectCredential(userId: UserCredential['user_id'], database: Kys
 
     return result;
 }
-async function updateCredential(userId: UserCredential['user_id'], updateUserCredentialData: UpdateUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function updateCredential(userId: SelectUserCredential['user_id'], updateUserCredentialData: UpdateUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_credentials')
     .where('user_id', '=', userId)
@@ -325,7 +332,7 @@ async function updateCredential(userId: UserCredential['user_id'], updateUserCre
 /// User Permission Functions                       ///
 ///////////////////////////////////////////////////////
 
-async function countPermissions(userId: UserPermission['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countPermissions(userId: SelectUserPermission['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('user_permissions')
     .select(
@@ -338,7 +345,7 @@ async function countPermissions(userId: UserPermission['user_id'], database: Kys
 
     return result.total;
 }
-async function selectPermissions(userId: UserPermission['user_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
+async function selectPermissions(userId: SelectUserPermission['user_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectPermission[]> {
     let results = await database
     .selectFrom('user_permissions')
     .innerJoin('permisions', 'permisions.id', 'user_permissions.id')
@@ -370,7 +377,7 @@ async function addPermission(userId: CreateUserPermission['user_id'], permission
 
     return insertResult;
 }
-async function removePermission(userId: UserPermission['user_id'], permissionId: UserPermission['permission_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function removePermission(userId: SelectUserPermission['user_id'], permissionId: SelectUserPermission['permission_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_permissions')
     .where((expressionBuilder) => expressionBuilder.and([
@@ -388,7 +395,7 @@ async function removePermission(userId: UserPermission['user_id'], permissionId:
 /// User Find Functions                             ///
 ///////////////////////////////////////////////////////
 
-async function findUserIdByEmail(email: User['email'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User['id'] | undefined> {
+async function findUserIdByEmail(email: SelectUser['email'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUser['id'] | undefined> {
     let result = await database
     .selectFrom('users')
     .select('id')
@@ -396,6 +403,130 @@ async function findUserIdByEmail(email: User['email'], database: Kysely<Database
     .executeTakeFirst();
 
     return result ? result.id : undefined;
+}
+
+///////////////////////////////////////////////////////
+/// User Filter Functions                           ///
+///////////////////////////////////////////////////////
+
+async function filterUsers(as: SelectUser['id'], users: SelectUser[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: User[] = [];
+
+        for (let user of users) filtered.push(await filterUser(as, user, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterUser(as: SelectUser['id'], user: SelectUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User> {
+    let option = await selectOption(user.id, database);
+    let id = HashIds.encode(user.id);
+    let email = 'hidden';
+    let username = 'anonym';
+
+    if (as == user.id || option.email_show_state == 'public') email = user.email;
+    if (as == user.id || option.username_show_state == 'public') username = user.username || 'hidden';
+
+    return {
+        ...user,
+        id,
+        email,
+        username,
+    }
+}
+async function filterUserOptions(as: SelectUser['id'], userOptions: SelectUserOption[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: UserOption[] = [];
+
+        for (let user of userOptions) filtered.push(await filterUserOption(as, user, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterUserOption(as: SelectUser['id'], userOption: SelectUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption> {
+    let id = HashIds.encode(userOption.id);
+    let user_id = HashIds.encode(userOption.user_id);
+
+    return {
+        ...userOption,
+        id,
+        user_id,
+    }
+}
+async function filterUserDetails(as: SelectUser['id'], userDetials: SelectUserDetail[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: UserDetail[] = [];
+
+        for (let userDetail of userDetials) filtered.push(await filterUserDetail(as, userDetail, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterUserDetail(as: SelectUser['id'], userDetial: SelectUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail> {
+    let option = await selectOption(userDetial.user_id, database);
+    let id = HashIds.encode(userDetial.id);
+    let user_id = HashIds.encode(userDetial.user_id);
+    let firstname = 'hidden';
+    let lastname = 'hidden';
+    let birthday = 'hidden';
+    let gender = 'hidden';
+    let pronouns = 'hidden';
+    let profile_description = 'hidden';
+
+    if (as == userDetial.user_id || option.firstname_show_state == 'public') firstname = userDetial.firstname || firstname;
+    if (as == userDetial.user_id || option.lastname_show_state == 'public') lastname = userDetial.lastname || lastname;
+    if (as == userDetial.user_id || option.birthday_show_state == 'public') birthday = userDetial.birthday ? userDetial.birthday.toLocaleDateString() : undefined || birthday;
+    if (as == userDetial.user_id || option.gender_show_state == 'public') gender = userDetial.gender || gender;
+    if (as == userDetial.user_id || option.pronouns_show_state == 'public') pronouns = userDetial.pronouns || pronouns;
+    if (as == userDetial.user_id || option.profile_description_show_state == 'public') profile_description = userDetial.profile_description || profile_description;
+
+    return {
+        ...userDetial,
+        id,
+        user_id,
+        firstname,
+        lastname,
+        birthday,
+        gender,
+        pronouns,
+        profile_description,
+    }
+}
+async function filterUserCredentials(as: SelectUser['id'], userCredentials: SelectUserCredential[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: UserCredential[] = [];
+
+        for (let userCredential of userCredentials) filtered.push(await filterUserCredential(as, userCredential, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterUserCredential(as: SelectUser['id'], userCredential: SelectUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential> {
+    let id = HashIds.encode(userCredential.id);
+    let user_id = HashIds.encode(userCredential.user_id);
+    let password = 'hidden';
+    let salt = 'hidden';
+
+    if (as == userCredential.user_id) {
+        password = userCredential.password;
+        salt = userCredential.salt;
+    }
+
+    return {
+        ...userCredential,
+        id,
+        user_id,
+        password,
+        salt,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -431,4 +562,14 @@ export const UserService = {
         removePermission,
     },
     findUserIdByEmail,
+    filters: {
+        users: filterUsers,
+        user: filterUser,
+        userOptions: filterUserOptions,
+        userOption: filterUserOption,
+        userDetials: filterUserDetails,
+        userDetial: filterUserDetail,
+        userCredentails: filterUserCredentials,
+        userCredentail: filterUserCredential,
+    }
 }

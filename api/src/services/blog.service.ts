@@ -1,7 +1,15 @@
+import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { Blog, CreateBlog, UpdateBlog } from "../models/blog.model";
-import { Like } from "../models/like.model";
+import { SelectBlog, CreateBlog, UpdateBlog, Blog } from "../models/blog.model";
+import { SelectLike } from "../models/like.model";
+import { SelectUser } from "../models/user.model";
+import HashIdsContructor from 'hashids';
+
+const Salt = process.env.HASH_ID_SALT || undefined;
+const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
+const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
+const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -23,7 +31,7 @@ const blogIsListable: WhereExpressionFactory<DatabaseSchema, 'blogs'> = (express
         expressionBuilder('blogs.deleted', '!=', true),
     ]);
 }
-const blogLikeIsListable: (blogId: Like['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (blogId) => {
+const blogLikeIsListable: (blogId: SelectLike['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (blogId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('likes.refecence_id', '=', blogId),
@@ -52,7 +60,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 
     return result.total;
 }
-async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog[]> {
+async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectBlog[]> {
     let results = await database
     .selectFrom('blogs')
     .selectAll()
@@ -63,7 +71,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog> {
+async function select(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectBlog> {
     let result = await database
     .selectFrom('blogs')
     .selectAll()
@@ -80,7 +88,7 @@ async function insert(userId: CreateBlog['author_id'], title: CreateBlog['title'
 
     return result;
 }
-async function update(blogId: Blog['id'], updateBlogData: UpdateBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(blogId: SelectBlog['id'], updateBlogData: UpdateBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('blogs')
     .where('id', '=', blogId)
@@ -89,7 +97,7 @@ async function update(blogId: Blog['id'], updateBlogData: UpdateBlog, database: 
 
     return result;
 }
-async function Delete(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('blogs')
     .where('id', '=', blogId)
@@ -97,19 +105,19 @@ async function Delete(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Tra
 
     return result;
 }
-async function markAsDeleted(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsApproved(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsApproved(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {approved: true, approved_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsPublished(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsPublished(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {published: true, published_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -118,7 +126,7 @@ async function markAsPublished(blogId: Blog['id'], database: Kysely<DatabaseSche
 /// Blog Like Functions                             ///
 ///////////////////////////////////////////////////////
 
-async function countLikes(blogId: Like['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countLikes(blogId: SelectLike['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('likes')
     .select(
@@ -130,6 +138,34 @@ async function countLikes(blogId: Like['refecence_id'], database: Kysely<Databas
     .executeTakeFirstOrThrow();
 
     return result.total;
+}
+
+///////////////////////////////////////////////////////
+/// Blog Filter Functions                           ///
+///////////////////////////////////////////////////////
+
+async function filterBlogs(as: SelectUser['id'], blogs: SelectBlog[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog[]> {
+    let results = await database.transaction().execute(async (transaction) => {
+        let filtered: Blog[] = [];
+
+        for (let blog of blogs) filtered.push(await filterBlog(as, blog, transaction));
+
+        return filtered;
+    })
+
+    return results;
+}
+async function filterBlog(as: SelectUser['id'], blog: SelectBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog> {
+    let id = HashIds.encode(blog.id);
+    let category_id = HashIds.encode(blog.category_id);
+    let author_id = HashIds.encode(blog.author_id);
+
+    return {
+        ...blog,
+        id,
+        category_id,
+        author_id,
+    }
 }
 
 ///////////////////////////////////////////////////////
@@ -147,6 +183,9 @@ export const PermissionService = {
     markAsReviewed,
     markAsApproved,
     markAsPublished,
-
     countLikes,
+    filters: {
+        blogs: filterBlogs,
+        blog: filterBlog,
+    }
 }
