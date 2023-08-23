@@ -12,9 +12,9 @@ export interface CommentTable {
     refecence_type: RefecenceTypeOption;
     refecence_id: bigint;
     approved: boolean;
-    approvedAt: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    approved_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
     reviewed: boolean;
-    reviewedAt: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    reviewed_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
     deleted: boolean;
     deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
     updated_at: ColumnType<Date, never, never>;
