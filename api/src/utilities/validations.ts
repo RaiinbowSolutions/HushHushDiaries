@@ -33,7 +33,7 @@ function validateEmail(request: Request) {
     return email;
 }
 
-export const Validate = {
+export const Validations = {
     pagination: validatePagination,
     id: validateId,
     email: validateEmail,
