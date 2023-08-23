@@ -25,7 +25,7 @@ export interface UserTable {
 export type User = Selectable<UserTable>;
 export type CreateUser = Insertable<UserTable>;
 export type UpdateUser = Updateable<UserTable>;
-export type FiltedUser = User & {
+export type FiltedUser = Omit<User, 'id'> & {
     id: string,
 };
 
@@ -44,7 +44,7 @@ export interface UserPermissionTable {
 export type UserPermission = Selectable<UserPermissionTable>;
 export type CreateUserPermission = Insertable<UserPermissionTable>;
 export type UpdateUserPermission = Updateable<UserPermissionTable>;
-export type filteredUserPermission = UserPermission & {
+export type filteredUserPermission = Omit<UserPermission, 'id' | 'user_id' | 'permission_id'> & {
     id: string, 
     user_id: string, 
     permission_id: string,
@@ -75,7 +75,7 @@ export interface UserOptionTable {
 export type UserOption = Selectable<UserOptionTable>;
 export type CreateUserOption = Insertable<UserOptionTable>;
 export type UpdateUserOption = Updateable<UserOptionTable>;
-export type filteredUserOption = UserOption & {
+export type filteredUserOption = Omit<UserOption, 'id' | 'user_id'> & {
     id: string, 
     user_id: string,
 };
@@ -101,7 +101,7 @@ export interface UserDetailTable {
 export type UserDetail = Selectable<UserDetailTable>;
 export type CreateUserDetail = Insertable<UserDetailTable>;
 export type UpdateUserDetail = Updateable<UserDetailTable>;
-export type FiltedUserDetail = UserDetail & {
+export type FiltedUserDetail = Omit<UserDetail, 'id' | 'user_id' | 'birthday'> & {
     id: string, 
     user_id: string,
     birthday: string,
@@ -123,7 +123,7 @@ export interface UserCredentialTable {
 export type UserCredential = Selectable<UserCredentialTable>;
 export type CreateUserCredential = Insertable<UserCredentialTable>;
 export type UpdateUserCredential = Updateable<UserCredentialTable>;
-export type FiltedUserCredential = UserCredential & {
+export type FiltedUserCredential = Omit<UserCredential, 'id' | 'user_id'> & {
     id: string,
     user_id: string,
 }
