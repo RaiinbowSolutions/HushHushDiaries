@@ -1,19 +1,19 @@
 import { Kysely, Transaction, WhereExpressionFactory, InsertResult, UpdateResult, DeleteResult } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
-import { CreateUser, CreateUserCredential, CreateUserDetail, CreateUserOption, CreateUserPermission, UpdateUser, UpdateUserCredential, UpdateUserDetail, UpdateUserOption, UpdateUserPermission, User, UserCredential, UserDetail, UserOption, UserPermission } from "../models/user.model";
+import { CreateUser, CreateUserCredential, CreateUserDetail, CreateUserOption, CreateUserPermission, UpdateUser, UpdateUserCredential, UpdateUserDetail, UpdateUserOption, User, UserCredential, UserDetail, UserOption, UserPermission } from "../models/user.model";
 import { Permission } from "../models/permission.model";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
 ///////////////////////////////////////////////////////
 
-const defaultUser: Omit<CreateUser, 'email'> = {
+const DefaultUser: Omit<CreateUser, 'email'> = {
     anonym: false,
     validated: false,
     banned: false,
     deleted: false,
 }
-const defaultUserOption: Omit<CreateUserOption, 'user_id'> = {
+const DefaultUserOption: Omit<CreateUserOption, 'user_id'> = {
     font_size: 'medium',
     design_tempature: 'normal',
     email_show_state: 'hidden',
@@ -27,13 +27,13 @@ const defaultUserOption: Omit<CreateUserOption, 'user_id'> = {
     profile_description_show_state: 'hidden',
     deleted: false,
 }
-const defaultUserDetial: Omit<CreateUserDetail, 'user_id'> = {
+const DefaultUserDetial: Omit<CreateUserDetail, 'user_id'> = {
     deleted: false,
 }
-const defualtUserCredentail: Omit<CreateUserCredential, 'user_id' | 'password' | 'salt'> = {
+const DefualtUserCredentail: Omit<CreateUserCredential, 'user_id' | 'password' | 'salt'> = {
     deleted: false,
 }
-const defaultUserPermission: Omit<CreateUserPermission, 'user_id' | 'permission_id'> = {
+const DefaultUserPermission: Omit<CreateUserPermission, 'user_id' | 'permission_id'> = {
     deleted: false,
 }
 
@@ -41,14 +41,14 @@ const defaultUserPermission: Omit<CreateUserPermission, 'user_id' | 'permission_
 /// Filters                                         ///
 ///////////////////////////////////////////////////////
 
-const userIsListable: WhereExpressionFactory<DatabaseSchema, 'users'> = (expressionBuilder) => {
+const UserIsListable: WhereExpressionFactory<DatabaseSchema, 'users'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('users.validated', '!=', false),
         expressionBuilder('users.banned', '!=', true),
         expressionBuilder('users.deleted', '!=', true),
     ]);
 }
-const userPermissionIsListable: (userId: bigint) => WhereExpressionFactory<DatabaseSchema, 'user_permissions'> = (userId) => {
+const UserPermissionIsListable: (userId: UserPermission['id']) => WhereExpressionFactory<DatabaseSchema, 'user_permissions'> = (userId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('user_permissions.user_id', '=', userId),
@@ -69,7 +69,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(userIsListable)
+        .filterWhere(UserIsListable)
         .as('total')
     )
     .executeTakeFirstOrThrow();
@@ -80,14 +80,14 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
     let results = await database
     .selectFrom('users')
     .selectAll()
-    .where(userIsListable)
+    .where(UserIsListable)
     .offset(offset)
     .limit(limit)
     .execute();
 
     return results;
 }
-async function select(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User> {
+async function select(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User> {
     let result = await database
     .selectFrom('users')
     .selectAll()
@@ -96,28 +96,28 @@ async function select(userId: bigint, database: Kysely<DatabaseSchema> | Transac
 
     return result;
 }
-async function insert(email: string, password: string, salt: string, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(email: CreateUser['email'], password: CreateUserCredential['password'], salt: CreateUserCredential['salt'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database.transaction().execute(async (transaction) => {
         let numInsertedOrUpdatedRows = BigInt(0);
 
         let userResult = await transaction
         .insertInto('users')
-        .values({...defaultUser, email})
+        .values({...DefaultUser, email})
         .executeTakeFirstOrThrow();
 
         let userOptionResult = await transaction
         .insertInto('user_options')
-        .values({...defaultUserOption, user_id: userResult.insertId!})
+        .values({...DefaultUserOption, user_id: userResult.insertId!})
         .executeTakeFirstOrThrow();
 
         let userDetailResult = await transaction
         .insertInto('user_details')
-        .values({...defaultUserDetial, user_id: userResult.insertId!})
+        .values({...DefaultUserDetial, user_id: userResult.insertId!})
         .executeTakeFirstOrThrow();
 
         let userCredentialResult = await transaction
         .insertInto('user_credentials')
-        .values({...defualtUserCredentail, user_id: userResult.insertId!, password, salt})
+        .values({...DefualtUserCredentail, user_id: userResult.insertId!, password, salt})
         .executeTakeFirstOrThrow();
 
         numInsertedOrUpdatedRows += userResult.numInsertedOrUpdatedRows || BigInt(0);
@@ -130,7 +130,7 @@ async function insert(email: string, password: string, salt: string, database: K
 
     return result;
 }
-async function update(userId: bigint, updateUserData: UpdateUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(userId: User['id'], updateUserData: UpdateUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('users')
     .where('id', '=', userId)
@@ -139,7 +139,7 @@ async function update(userId: bigint, updateUserData: UpdateUser, database: Kyse
 
     return result;
 }
-async function Delete(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database.transaction().execute(async (transaction) => {
         let numDeletedRows = BigInt(0);
 
@@ -181,7 +181,7 @@ async function Delete(userId: bigint, database: Kysely<DatabaseSchema> | Transac
 
     return result;
 }
-async function markAsDeleted(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database.transaction().execute(async (transaction) => {
         let numUpdatedRows = BigInt(0);
 
@@ -243,11 +243,11 @@ async function markAsDeleted(userId: bigint, database: Kysely<DatabaseSchema> | 
 
     return result;
 }
-async function markAsBanned(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsBanned(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(userId, {banned: true, banned_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsValidated(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsValidated(userId: User['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(userId, {validated: true, validated_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -256,7 +256,7 @@ async function markAsValidated(userId: bigint, database: Kysely<DatabaseSchema> 
 /// User Option Functions                           ///
 ///////////////////////////////////////////////////////
 
-async function selectOption(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption> {
+async function selectOption(userId: UserOption['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption> {
     let result = await database
     .selectFrom('user_options')
     .selectAll()
@@ -265,7 +265,7 @@ async function selectOption(userId: bigint, database: Kysely<DatabaseSchema> | T
 
     return result;
 }
-async function updateOption(userId: bigint, updateUserOptionData: UpdateUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function updateOption(userId: UserOption['user_id'], updateUserOptionData: UpdateUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_options')
     .where('user_id', '=', userId)
@@ -279,7 +279,7 @@ async function updateOption(userId: bigint, updateUserOptionData: UpdateUserOpti
 /// User Detail Functions                           ///
 ///////////////////////////////////////////////////////
 
-async function selectDetail(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail> {
+async function selectDetail(userId: UserDetail['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail> {
     let result = await database
     .selectFrom('user_details')
     .selectAll()
@@ -288,7 +288,7 @@ async function selectDetail(userId: bigint, database: Kysely<DatabaseSchema> | T
 
     return result;
 }
-async function updateDetail(userId: bigint, updateUserDetailData: UpdateUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function updateDetail(userId: UserDetail['user_id'], updateUserDetailData: UpdateUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_details')
     .where('user_id', '=', userId)
@@ -302,7 +302,7 @@ async function updateDetail(userId: bigint, updateUserDetailData: UpdateUserDeta
 /// User Credential Functions                       ///
 ///////////////////////////////////////////////////////
 
-async function selectCredential(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential> {
+async function selectCredential(userId: UserCredential['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential> {
     let result = await database
     .selectFrom('user_credentials')
     .selectAll()
@@ -311,7 +311,7 @@ async function selectCredential(userId: bigint, database: Kysely<DatabaseSchema>
 
     return result;
 }
-async function updateCredential(userId: bigint, updateUserCredentialData: UpdateUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function updateCredential(userId: UserCredential['user_id'], updateUserCredentialData: UpdateUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_credentials')
     .where('user_id', '=', userId)
@@ -325,24 +325,24 @@ async function updateCredential(userId: bigint, updateUserCredentialData: Update
 /// User Permission Functions                       ///
 ///////////////////////////////////////////////////////
 
-async function countPermissions(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countPermissions(userId: UserPermission['user_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('user_permissions')
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(userPermissionIsListable(userId))
+        .filterWhere(UserPermissionIsListable(userId))
         .as('total')
     )
     .executeTakeFirstOrThrow();
 
     return result.total;
 }
-async function selectPermissions(userId: bigint, offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
+async function selectPermissions(userId: UserPermission['user_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
     let results = await database
     .selectFrom('user_permissions')
     .innerJoin('permisions', 'permisions.id', 'user_permissions.id')
-    .where(userPermissionIsListable(userId))
+    .where(UserPermissionIsListable(userId))
     .selectAll('permisions')
     .offset(offset)
     .limit(limit)
@@ -351,7 +351,7 @@ async function selectPermissions(userId: bigint, offset: number, limit: number, 
     return results;
 }
 
-async function addPermission(userId: bigint, permissionId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult | UpdateResult> {
+async function addPermission(userId: CreateUserPermission['user_id'], permissionId: CreateUserPermission['permission_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult | UpdateResult> {
     let updateResult = await database
     .updateTable('user_permissions')
     .where((expressionBuilder) => expressionBuilder.and([
@@ -365,12 +365,12 @@ async function addPermission(userId: bigint, permissionId: bigint, database: Kys
 
     let insertResult = await database
     .insertInto('user_permissions')
-    .values({...defaultUserPermission, user_id: userId, permission_id: permissionId})
+    .values({...DefaultUserPermission, user_id: userId, permission_id: permissionId})
     .executeTakeFirstOrThrow();
 
     return insertResult;
 }
-async function removePermission(userId: bigint, permissionId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function removePermission(userId: UserPermission['user_id'], permissionId: UserPermission['permission_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('user_permissions')
     .where((expressionBuilder) => expressionBuilder.and([

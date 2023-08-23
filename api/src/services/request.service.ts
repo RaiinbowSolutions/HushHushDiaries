@@ -3,10 +3,19 @@ import { Database, DatabaseSchema } from "../utilities/database";
 import { CreateRequest, Request, UpdateRequest } from "../models/request.model";
 
 ///////////////////////////////////////////////////////
+/// Default Templates                               ///
+///////////////////////////////////////////////////////
+
+const DefaultRequest: Omit<CreateRequest, 'sender_id' | 'content' | 'topic' | 'reference_type' | 'reference_id'> = {
+    deleted: false,
+    reviewed: false,
+}
+
+///////////////////////////////////////////////////////
 /// Filters                                         ///
 ///////////////////////////////////////////////////////
 
-const requestIsListable: WhereExpressionFactory<DatabaseSchema, 'requests'> = (expressionBuilder) => {
+const RequestIsListable: WhereExpressionFactory<DatabaseSchema, 'requests'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('requests.deleted', '!=', true),
     ]);
@@ -22,7 +31,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(requestIsListable)
+        .filterWhere(RequestIsListable)
         .as('total')
     )
     .executeTakeFirstOrThrow();
@@ -33,14 +42,14 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
     let results = await database
     .selectFrom('requests')
     .selectAll()
-    .where(requestIsListable)
+    .where(RequestIsListable)
     .offset(offset)
     .limit(limit)
     .execute();
 
     return results;
 }
-async function select(requestId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request> {
+async function select(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request> {
     let result = await database
     .selectFrom('requests')
     .selectAll()
@@ -49,15 +58,15 @@ async function select(requestId: bigint, database: Kysely<DatabaseSchema> | Tran
 
     return result;
 }
-async function insert(createRequestData: CreateRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(userId: CreateRequest['sender_id'], content: CreateRequest['content'], topic: CreateRequest['topic'], referenceType: CreateRequest['reference_type'], referenceId: CreateRequest['reference_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('requests')
-    .values(createRequestData)
+    .values({...DefaultRequest, sender_id: userId, content, topic, reference_type: referenceType, reference_id: referenceId})
     .executeTakeFirstOrThrow();
 
     return result;
 }
-async function update(requestId: bigint, updateRequestData: UpdateRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(requestId: Request['id'], updateRequestData: UpdateRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('requests')
     .where('id', '=', requestId)
@@ -66,7 +75,7 @@ async function update(requestId: bigint, updateRequestData: UpdateRequest, datab
 
     return result;
 }
-async function Delete(requestId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('requests')
     .where('id', '=', requestId)
@@ -74,11 +83,11 @@ async function Delete(requestId: bigint, database: Kysely<DatabaseSchema> | Tran
 
     return result;
 }
-async function markAsDeleted(requestId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(requestId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(requestId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(requestId: Request['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(requestId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }

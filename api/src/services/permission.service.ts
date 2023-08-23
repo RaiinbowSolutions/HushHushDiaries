@@ -3,6 +3,14 @@ import { Database, DatabaseSchema } from "../utilities/database";
 import { CreatePermission, Permission, UpdatePermission } from "../models/permission.model";
 
 ///////////////////////////////////////////////////////
+/// Default Templates                               ///
+///////////////////////////////////////////////////////
+
+const DefaultPermission: Omit<CreatePermission, 'name'> = {
+    deleted: false,
+}
+
+///////////////////////////////////////////////////////
 /// Filters                                         ///
 ///////////////////////////////////////////////////////
 
@@ -40,7 +48,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(permissionId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission> {
+async function select(permissionId: Permission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission> {
     let result = await database
     .selectFrom('permisions')
     .selectAll()
@@ -49,15 +57,15 @@ async function select(permissionId: bigint, database: Kysely<DatabaseSchema> | T
 
     return result;
 }
-async function insert(createPermissionData: CreatePermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(name: CreatePermission['name'], description: CreatePermission['description'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('permisions')
-    .values(createPermissionData)
+    .values({...DefaultPermission, name, description})
     .executeTakeFirstOrThrow();
 
     return result;
 }
-async function update(permissionId: bigint, updatePermissionData: UpdatePermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(permissionId: Permission['id'], updatePermissionData: UpdatePermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('permisions')
     .where('id', '=', permissionId)
@@ -66,7 +74,7 @@ async function update(permissionId: bigint, updatePermissionData: UpdatePermissi
 
     return result;
 }
-async function Delete(permissionId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(permissionId: Permission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('permisions')
     .where('id', '=', permissionId)
@@ -74,7 +82,7 @@ async function Delete(permissionId: bigint, database: Kysely<DatabaseSchema> | T
 
     return result;
 }
-async function markAsDeleted(permissionId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(permissionId: Permission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(permissionId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }

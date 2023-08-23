@@ -3,15 +3,24 @@ import { Database, DatabaseSchema } from "../utilities/database";
 import { CreateMessage, Message, UpdateMessage } from "../models/message.model";
 
 ///////////////////////////////////////////////////////
+/// Default Templates                               ///
+///////////////////////////////////////////////////////
+
+const DefaultMessage: Omit<CreateMessage, 'content' | 'sender_id' | 'reveiver_id' | 'topic'> = {
+    reviewed: false,
+    deleted: false,
+}
+
+///////////////////////////////////////////////////////
 /// Filters                                         ///
 ///////////////////////////////////////////////////////
 
-const messageIsListable: WhereExpressionFactory<DatabaseSchema, 'messages'> = (expressionBuilder) => {
+const MessageIsListable: WhereExpressionFactory<DatabaseSchema, 'messages'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('messages.deleted', '!=', true),
     ]);
 }
-const outgoingMessageIsListable: (userId: bigint) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
+const OutgoingMessageIsListable: (userId: Message['sender_id']) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('messages.sender_id', '=', userId),
@@ -21,7 +30,7 @@ const outgoingMessageIsListable: (userId: bigint) => WhereExpressionFactory<Data
         ]);
     };
 }
-const incomingMessageIsListable: (userId: bigint) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
+const IncomingMessageIsListable: (userId: Message['reveiver_id']) => WhereExpressionFactory<DatabaseSchema, 'messages'> = (userId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('messages.reveiver_id', '=', userId),
@@ -42,7 +51,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(messageIsListable)
+        .filterWhere(MessageIsListable)
         .as('total')
     )
     .executeTakeFirstOrThrow();
@@ -53,14 +62,14 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
     let results = await database
     .selectFrom('messages')
     .selectAll()
-    .where(messageIsListable)
+    .where(MessageIsListable)
     .offset(offset)
     .limit(limit)
     .execute();
 
     return results;
 }
-async function select(messageId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message> {
+async function select(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message> {
     let result = await database
     .selectFrom('messages')
     .selectAll()
@@ -69,15 +78,15 @@ async function select(messageId: bigint, database: Kysely<DatabaseSchema> | Tran
 
     return result;
 }
-async function insert(createMessageData: CreateMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(userId: CreateMessage['sender_id'], reveiverId: CreateMessage['reveiver_id'], content: CreateMessage['content'], topic: CreateMessage['topic'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('messages')
-    .values(createMessageData)
+    .values({...DefaultMessage, sender_id: userId, reveiver_id: reveiverId, content, topic})
     .executeTakeFirstOrThrow();
 
     return result;
 }
-async function update(messageId: bigint, updateMessageData: UpdateMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(messageId: Message['id'], updateMessageData: UpdateMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('messages')
     .where('id', '=', messageId)
@@ -86,7 +95,7 @@ async function update(messageId: bigint, updateMessageData: UpdateMessage, datab
 
     return result;
 }
-async function Delete(messageId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('messages')
     .where('id', '=', messageId)
@@ -94,11 +103,11 @@ async function Delete(messageId: bigint, database: Kysely<DatabaseSchema> | Tran
 
     return result;
 }
-async function markAsDeleted(messageId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(messageId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(messageId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(messageId: Message['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(messageId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -107,24 +116,24 @@ async function markAsReviewed(messageId: bigint, database: Kysely<DatabaseSchema
 /// Message Outgoing Functions                      ///
 ///////////////////////////////////////////////////////
 
-async function countOutgoings(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countOutgoings(userId: Message['sender_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('messages')
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(outgoingMessageIsListable(userId))
+        .filterWhere(OutgoingMessageIsListable(userId))
         .as('total')
     )
     .executeTakeFirstOrThrow();
 
     return result.total;
 }
-async function selectOutgoings(userId: bigint, offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
+async function selectOutgoings(userId: Message['sender_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
     let results = await database
     .selectFrom('messages')
     .selectAll()
-    .where(outgoingMessageIsListable(userId))
+    .where(OutgoingMessageIsListable(userId))
     .offset(offset)
     .limit(limit)
     .execute();
@@ -136,24 +145,24 @@ async function selectOutgoings(userId: bigint, offset: number, limit: number, da
 /// Message Incoming Functions                      ///
 ///////////////////////////////////////////////////////
 
-async function countIncomings(userId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countIncomings(userId: Message['reveiver_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('messages')
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(incomingMessageIsListable(userId))
+        .filterWhere(IncomingMessageIsListable(userId))
         .as('total')
     )
     .executeTakeFirstOrThrow();
 
     return result.total;
 }
-async function selectIncomings(userId: bigint, offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
+async function selectIncomings(userId: Message['reveiver_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message[]> {
     let results = await database
     .selectFrom('messages')
     .selectAll()
-    .where(incomingMessageIsListable(userId))
+    .where(IncomingMessageIsListable(userId))
     .offset(offset)
     .limit(limit)
     .execute();

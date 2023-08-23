@@ -1,6 +1,18 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { Blog, CreateBlog, UpdateBlog } from "../models/blog.model";
+import { Like } from "../models/like.model";
+
+///////////////////////////////////////////////////////
+/// Default Templates                               ///
+///////////////////////////////////////////////////////
+
+const DefaultBlog: Omit<CreateBlog, 'title' | 'content' | 'category_id' | 'author_id'> = {
+    reviewed: false,
+    published: false,
+    approved: false,
+    deleted: false
+}
 
 ///////////////////////////////////////////////////////
 /// Filters                                         ///
@@ -11,10 +23,10 @@ const blogIsListable: WhereExpressionFactory<DatabaseSchema, 'blogs'> = (express
         expressionBuilder('blogs.deleted', '!=', true),
     ]);
 }
-const blogLikeIsListable: (commentId: bigint) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (commentId) => {
+const blogLikeIsListable: (blogId: Like['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (blogId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
-            expressionBuilder('likes.refecence_id', '=', commentId),
+            expressionBuilder('likes.refecence_id', '=', blogId),
             expressionBuilder('likes.refecence_type', '=', 'blog'),
             expressionBuilder.or([
                 expressionBuilder('likes.deleted', '!=', true),
@@ -51,7 +63,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 
     return results;
 }
-async function select(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog> {
+async function select(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog> {
     let result = await database
     .selectFrom('blogs')
     .selectAll()
@@ -60,15 +72,15 @@ async function select(blogId: bigint, database: Kysely<DatabaseSchema> | Transac
 
     return result;
 }
-async function insert(createBlogData: CreateBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(userId: CreateBlog['author_id'], title: CreateBlog['title'], content: CreateBlog['content'], categoryId: CreateBlog['category_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('blogs')
-    .values(createBlogData)
+    .values({...DefaultBlog, author_id: userId, title, content, category_id: categoryId})
     .executeTakeFirstOrThrow();
 
     return result;
 }
-async function update(blogId: bigint, updateBlogData: UpdateBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(blogId: Blog['id'], updateBlogData: UpdateBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('blogs')
     .where('id', '=', blogId)
@@ -77,7 +89,7 @@ async function update(blogId: bigint, updateBlogData: UpdateBlog, database: Kyse
 
     return result;
 }
-async function Delete(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('blogs')
     .where('id', '=', blogId)
@@ -85,19 +97,19 @@ async function Delete(blogId: bigint, database: Kysely<DatabaseSchema> | Transac
 
     return result;
 }
-async function markAsDeleted(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsApproved(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsApproved(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {approved: true, approved_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsPublished(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsPublished(blogId: Blog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(blogId, {published: true, published_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -106,7 +118,7 @@ async function markAsPublished(blogId: bigint, database: Kysely<DatabaseSchema> 
 /// Blog Like Functions                             ///
 ///////////////////////////////////////////////////////
 
-async function countLikes(blogId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countLikes(blogId: Like['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('likes')
     .select(
@@ -134,6 +146,7 @@ export const PermissionService = {
     markAsDeleted,
     markAsReviewed,
     markAsApproved,
+    markAsPublished,
 
     countLikes,
 }

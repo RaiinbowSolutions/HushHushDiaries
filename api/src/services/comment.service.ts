@@ -1,17 +1,28 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { Comment, CreateComment, UpdateComment } from "../models/comment.model";
+import { Like } from "../models/like.model";
+
+///////////////////////////////////////////////////////
+/// Default Templates                               ///
+///////////////////////////////////////////////////////
+
+const DefualtComment: Omit<CreateComment, 'author_id' | 'content' | 'refecence_type' | 'refecence_id'> = {
+    deleted: false,
+    approved: false,
+    reviewed: false,
+}
 
 ///////////////////////////////////////////////////////
 /// Filters                                         ///
 ///////////////////////////////////////////////////////
 
-const commentIsListable: WhereExpressionFactory<DatabaseSchema, 'comments'> = (expressionBuilder) => {
+const CommentIsListable: WhereExpressionFactory<DatabaseSchema, 'comments'> = (expressionBuilder) => {
     return expressionBuilder.or([
         expressionBuilder('comments.deleted', '!=', true),
     ]);
 }
-const commentLikeIsListable: (commentId: bigint) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (commentId) => {
+const CommentLikeIsListable: (commentId: Like['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (commentId) => {
     return (expressionBuilder) => {
         return expressionBuilder.and([
             expressionBuilder('likes.refecence_id', '=', commentId),
@@ -33,7 +44,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(commentIsListable)
+        .filterWhere(CommentIsListable)
         .as('total')
     )
     .executeTakeFirstOrThrow();
@@ -44,14 +55,14 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
     let results = await database
     .selectFrom('comments')
     .selectAll()
-    .where(commentIsListable)
+    .where(CommentIsListable)
     .offset(offset)
     .limit(limit)
     .execute();
 
     return results;
 }
-async function select(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment> {
+async function select(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment> {
     let result = await database
     .selectFrom('comments')
     .selectAll()
@@ -60,15 +71,15 @@ async function select(commentId: bigint, database: Kysely<DatabaseSchema> | Tran
 
     return result;
 }
-async function insert(createCommentData: CreateComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(userId: CreateComment['author_id'], content: CreateComment['content'], referenceType: CreateComment['refecence_type'], referenceId: CreateComment['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('comments')
-    .values(createCommentData)
+    .values({...DefualtComment, author_id: userId, content, refecence_type: referenceType, refecence_id: referenceId})
     .executeTakeFirstOrThrow();
 
     return result;
 }
-async function update(commentId: bigint, updateCommentData: UpdateComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function update(commentId: Comment['id'], updateCommentData: UpdateComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
     .updateTable('comments')
     .where('id', '=', commentId)
@@ -77,7 +88,7 @@ async function update(commentId: bigint, updateCommentData: UpdateComment, datab
 
     return result;
 }
-async function Delete(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
+async function Delete(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
     .deleteFrom('comments')
     .where('id', '=', commentId)
@@ -85,15 +96,15 @@ async function Delete(commentId: bigint, database: Kysely<DatabaseSchema> | Tran
 
     return result;
 }
-async function markAsDeleted(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsDeleted(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(commentId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsReviewed(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsReviewed(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(commentId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
     return result;
 }
-async function markAsApproved(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+async function markAsApproved(commentId: Comment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await update(commentId, {approved: true, approved_at: new Date().toUTCString()}, database);
     return result;
 }
@@ -102,13 +113,13 @@ async function markAsApproved(commentId: bigint, database: Kysely<DatabaseSchema
 /// Comment Like Functions                          ///
 ///////////////////////////////////////////////////////
 
-async function countLikes(commentId: bigint, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+async function countLikes(commentId: Like['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
     .selectFrom('likes')
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(commentLikeIsListable(commentId))
+        .filterWhere(CommentLikeIsListable(commentId))
         .as('total')
     )
     .executeTakeFirstOrThrow();
