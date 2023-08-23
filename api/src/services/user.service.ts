@@ -385,6 +385,20 @@ async function removePermission(userId: UserPermission['user_id'], permissionId:
 }
 
 ///////////////////////////////////////////////////////
+/// User Find Functions                             ///
+///////////////////////////////////////////////////////
+
+async function findUserIdByEmail(email: User['email'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User['id'] | undefined> {
+    let result = await database
+    .selectFrom('users')
+    .select('id')
+    .where('email', '=', email)
+    .executeTakeFirst();
+
+    return result ? result.id : undefined;
+}
+
+///////////////////////////////////////////////////////
 /// User Service Setup                              ///
 ///////////////////////////////////////////////////////
 
@@ -416,4 +430,5 @@ export const UserService = {
         addPermission,
         removePermission,
     },
+    findUserIdByEmail,
 }
