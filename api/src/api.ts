@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { APIGatewayEvent, Context } from 'aws-lambda';
 import lambda, { Request, Response } from 'lambda-api';
 import { UserRoute } from './routes/user.route';
+import { AuthenticationMiddleware } from './middleware/authentication.middleware';
 
 const api = lambda({
     base: '.netlify/functions/api'
@@ -19,7 +20,9 @@ api.get('/', (request: Request, response: Response) => {
     return response.status(200).json({
         message
     });
-})
+});
+
+api.use(AuthenticationMiddleware());
 
 api.register(UserRoute);
 
