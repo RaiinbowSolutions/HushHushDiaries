@@ -6,7 +6,7 @@ import { Validation } from '../utilities/validation';
 import { Authentication } from '../middleware/authentication.middleware';
 
 export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
-    const Prefix = options?.prefix;
+    const Prefix = options?.prefix || '';
     const BaseURI = '/users';
 
     api.get(Prefix + BaseURI + '/counts',
