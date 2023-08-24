@@ -172,7 +172,7 @@ async function filterBlog(as: SelectUser['id'], blog: SelectBlog, database: Kyse
 /// Blog Service Setup                              ///
 ///////////////////////////////////////////////////////
 
-export const PermissionService = {
+export const BlogService = {
     counts,
     selects,
     select,
