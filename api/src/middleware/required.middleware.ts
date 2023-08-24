@@ -8,6 +8,7 @@ import { MessageService } from "../services/message.service";
 import { LikeService } from "../services/like.service";
 import { CommentService } from "../services/comment.service";
 import { BlogService } from "../services/blog.service";
+import { ForbiddenError } from "../utilities/http.error";
 
 export enum SpecialPermission {
     AllowOwner = 'allow-owner',
@@ -82,6 +83,6 @@ export const RequiredMiddleware = (referenceType: ReferenceType, ...permissions:
         if (isOwner && allowOwner) return next();
         if (allowed) return next();
 
-        throw new Error(); // Needs a better error definition
+        throw ForbiddenError();
     }
 };

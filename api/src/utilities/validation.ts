@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Request } from "lambda-api";
 import HashIdsContructor from 'hashids';
+import { BadRequestError } from './http.error';
 
 const Salt = process.env.HASH_ID_SALT || undefined;
 const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
@@ -27,7 +28,7 @@ function validateId(request: Request) {
     let id = request.params.id || '';
     let valid = HashIds.isValidId(id);
 
-    if (!valid) throw new Error(); // Needs a better error definition
+    if (!valid) throw BadRequestError();
     return HashIds.decode(id)[0] as bigint;
 }
 
@@ -35,7 +36,7 @@ function validateEmail(request: Request) {
     let email = request.params.email || '';
     let valid = EmailValidationRegex.test(email);
     
-    if (!valid) throw new Error(); // Needs a better error definition
+    if (!valid) throw BadRequestError();
     return email;
 }
 
