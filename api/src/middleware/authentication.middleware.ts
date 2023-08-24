@@ -33,13 +33,13 @@ export const AuthenticationMiddleware = (): Middleware => {
                 issuer: JsonWebTokenIssuer
             }) as JwtPayload;
 
-            authentication.id = payload.id;
-
-            let total = await UserService.permissions.countPermissions(authentication.id);
-            let userPermissions = await UserService.permissions.selectPermissions(authentication.id, 0, Number(total));
+            let total = await UserService.permissions.countPermissions(payload.id);
+            let userPermissions = await UserService.permissions.selectPermissions(payload.id, 0, Number(total));
             let permissions = userPermissions.map((userPermission) => userPermission.name);
 
+            authentication.id = payload.id;
             authentication.permissions = permissions;
+            authentication.authenticated = true;
         }
 
         request.authentication = authentication;
