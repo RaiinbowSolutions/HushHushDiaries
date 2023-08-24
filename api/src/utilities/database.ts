@@ -9,6 +9,8 @@ import { PermissionTable } from "../models/permission.model";
 import { RequestTable } from "../models/request.model";
 import { UserCredentialTable, UserDetailTable, UserOptionTable, UserPermissionTable, UserTable } from "../models/user.model";
 
+export type ReferenceType = 'blogs' | 'categories' | 'comments' | 'likes' | 'messages' | 'permisions' | 'requests' | 'users' | 'user_credentials' | 'user_details' | 'user_options' | 'user_permissions';
+
 export interface DatabaseSchema {
     blogs: BlogTable,
     categories: CategoryTable,
