@@ -167,7 +167,7 @@ async function filterComment(as: SelectUser['id'], comment: SelectComment, datab
 /// Comment Service Setup                           ///
 ///////////////////////////////////////////////////////
 
-export const PermissionService = {
+export const CommentService = {
     counts,
     selects,
     select,

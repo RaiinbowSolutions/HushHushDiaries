@@ -214,7 +214,7 @@ async function filterMessage(as: SelectUser['id'], message: SelectMessage, datab
 /// Message Service Setup                           ///
 ///////////////////////////////////////////////////////
 
-export const PermissionService = {
+export const MessageService = {
     counts,
     selects,
     select,
