@@ -3,6 +3,7 @@ import { AuthenticatedMiddleware as Authenticated } from '../middleware/authenti
 import { UserService } from '../services/user.service';
 import { CreateDataResponse, CreatePaginationDataResponse } from '../utilities/responses';
 import { Validation } from '../utilities/validation';
+import { Authentication } from '../middleware/authentication.middleware';
 
 export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix;
@@ -19,7 +20,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.get(Prefix + BaseURI,
         Authenticated(),
         async (request: Request, response: Response) => {
-            let authentication = request.authentication;
+            let authentication: Authentication = request.authentication;
             let {limit, offset} = Validation.pagination(request);
             let total = await UserService.counts();
             let users = await UserService.selects(offset, limit);
@@ -31,7 +32,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.get(Prefix + BaseURI + '/[id]',
         Authenticated(),
         async (request: Request, response: Response) => {
-            let authentication = request.authentication;
+            let authentication: Authentication = request.authentication;
             let id = Validation.id(request);
             let user = await UserService.select(id);
             let filteredUser = await UserService.filters.user(authentication.id, user);
