@@ -3,6 +3,7 @@ import { AuthenticatedMiddleware as Authenticated } from "../middleware/authenti
 import { CategoryService } from "../services/category.service";
 import { Validation } from "../utilities/validation";
 import { CreateDataResponse, CreatePaginationDataResponse } from "../utilities/responses";
+import { Authentication } from '../middleware/authentication.middleware';
 
 export const CategoryRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix;
@@ -19,7 +20,7 @@ export const CategoryRoute = (api: API, options: RegisterOptions | undefined) =>
     api.get(Prefix + BaseURI,
         Authenticated(),
         async (request: Request, response: Response) => {
-            let authentication = request.authentication;
+            let authentication: Authentication = request.authentication;
             let {limit, offset} = Validation.pagination(request);
             let total = await CategoryService.counts();
             let categories = await CategoryService.selects(offset, limit);
