@@ -4,6 +4,13 @@ import lambda, { Request, Response } from 'lambda-api';
 import { UserRoute } from './routes/user.route';
 import { AuthenticationMiddleware } from './middleware/authentication.middleware';
 import { ErrorMiddleware } from './middleware/error.middleware';
+import { RequestRoute } from './routes/request.route';
+import { BlogRoute } from './routes/blog.route';
+import { CategoryRoute } from './routes/category.route';
+import { CommentRoute } from './routes/comment.route';
+import { MessageRoute } from './routes/message.route';
+import { PermissionRoute } from './routes/permission.route';
+import { TokenRoute } from './routes/token.route';
 
 const api = lambda({
     base: '.netlify/functions/api',
@@ -32,6 +39,13 @@ api.get('/', (request: Request, response: Response) => {
 api.use(AuthenticationMiddleware());
 api.use(ErrorMiddleware());
 
+api.register(BlogRoute);
+api.register(CategoryRoute);
+api.register(CommentRoute);
+api.register(MessageRoute);
+api.register(PermissionRoute);
+api.register(RequestRoute);
+api.register(TokenRoute);
 api.register(UserRoute);
 
 api.finally(async () => {});
