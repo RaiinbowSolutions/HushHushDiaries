@@ -6,7 +6,13 @@ import { AuthenticationMiddleware } from './middleware/authentication.middleware
 import { ErrorMiddleware } from './middleware/error.middleware';
 
 const api = lambda({
-    base: '.netlify/functions/api'
+    base: '.netlify/functions/api',
+    logger: false,
+    errorHeaderWhitelist: [
+		'Access-Control-Allow-Origin',
+		'Access-Control-Allow-Methods',
+		'Access-Control-Allow-Headers',
+	],
 });
 
 api.options('/*', (request: Request, response: Response) => {
