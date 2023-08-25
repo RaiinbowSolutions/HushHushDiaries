@@ -27,19 +27,21 @@ export const AuthenticationMiddleware = (): Middleware => {
         }
 
         if (auth.type == 'Bearer' && auth.value != null) {
-            let payload: JwtPayload = JWT.verify(auth.value, JsonWebTokenSecret, {
-                ignoreExpiration: false,
-                ignoreNotBefore: false,
-                issuer: JsonWebTokenIssuer
-            }) as JwtPayload;
-
-            let total = await UserService.permissions.countPermissions(payload.id);
-            let userPermissions = await UserService.permissions.selectPermissions(payload.id, 0, Number(total));
-            let permissions = userPermissions.map((userPermission) => userPermission.name);
-
-            authentication.id = payload.id;
-            authentication.permissions = permissions;
-            authentication.authenticated = true;
+            try {
+                let payload: JwtPayload = JWT.verify(auth.value, JsonWebTokenSecret, {
+                    ignoreExpiration: false,
+                    ignoreNotBefore: false,
+                    issuer: JsonWebTokenIssuer
+                }) as JwtPayload;
+    
+                let total = await UserService.permissions.countPermissions(payload.id);
+                let userPermissions = await UserService.permissions.selectPermissions(payload.id, 0, Number(total));
+                let permissions = userPermissions.map((userPermission) => userPermission.name);
+    
+                authentication.id = payload.id;
+                authentication.permissions = permissions;
+                authentication.authenticated = true;
+            } catch (error) {}
         }
 
         request.authentication = authentication;

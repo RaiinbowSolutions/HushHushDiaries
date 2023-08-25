@@ -1,9 +1,17 @@
 import { Middleware } from "lambda-api";
-import { UnauthorizedError } from "../utilities/http.error";
+import { Authentication } from "./authentication.middleware";
+import { UnauthorizedError } from "./error.middleware";
 
 export const AuthenticatedMiddleware = (): Middleware => {
     return async (request, response, next) => {
-        if ('authentication' in request && request.authentication.authenticated == true) return next();
-        throw UnauthorizedError();
+        let failed = true;
+
+        if ('authentication' in request) {
+            let authentication: Authentication = request.authentication;
+            if (authentication.authenticated) failed = false;
+        }
+
+        if (failed) throw new UnauthorizedError('Given URI require an authenticated connection');
+        return next();
     }
 };

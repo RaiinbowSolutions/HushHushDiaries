@@ -8,13 +8,13 @@ import { MessageService } from "../services/message.service";
 import { LikeService } from "../services/like.service";
 import { CommentService } from "../services/comment.service";
 import { BlogService } from "../services/blog.service";
-import { ForbiddenError } from "../utilities/http.error";
+import { ForbiddenError } from "./error.middleware";
 
 export enum SpecialPermission {
     AllowOwner = 'allow-owner',
 }
 
-const HasPermissions = (userPermissions: string[], permissions: (string | SpecialPermission)[]) => {
+function hasRequiredPermissions(userPermissions: string[], permissions: (string | SpecialPermission)[]) {
     for (let permission of permissions) {
         if (permission == SpecialPermission.AllowOwner) continue;
         if (!(permission in userPermissions)) return false;
@@ -23,7 +23,7 @@ const HasPermissions = (userPermissions: string[], permissions: (string | Specia
     return true;
 }
 
-const IsOwner = async (as: Authentication['id'], referenceType: ReferenceType, referenceId: bigint): Promise<boolean> => {
+async function isOwner(as: Authentication['id'], referenceType: ReferenceType, referenceId: bigint) {
     if (referenceType == 'users') {
         let user = await UserService.select(referenceId);
         return as == user.id;
@@ -76,13 +76,17 @@ export const RequiredMiddleware = (referenceType: ReferenceType, ...permissions:
     return async (request, response, next) => {
         let authentication: Authentication = request.authentication;
         let referenceId = Validation.id(request);
-        let allowOwner = SpecialPermission.AllowOwner in permissions;
-        let allowed = HasPermissions(authentication.permissions, permissions);
-        let isOwner = await IsOwner(authentication.id, referenceType, referenceId);
+        let failed = true;
 
-        if (isOwner && allowOwner) return next();
-        if (allowed) return next();
+        if (SpecialPermission.AllowOwner in permissions) {
+            let owner = await isOwner(authentication.id, referenceType, referenceId);
+            if (owner) failed = false; 
+        }
 
-        throw ForbiddenError();
+        let allowed = hasRequiredPermissions(authentication.permissions, permissions);
+        if (allowed) failed = false;
+
+        if (failed) throw new ForbiddenError('Given authentication does not have required permissions for this action');
+        return next();
     }
 };
