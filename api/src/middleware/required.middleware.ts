@@ -1,5 +1,4 @@
 import { Middleware } from "lambda-api";
-import { Validation } from '../utilities/validation';
 import { Authentication } from "./authentication.middleware";
 import { ReferenceType } from "../utilities/database";
 import { UserService } from "../services/user.service";
