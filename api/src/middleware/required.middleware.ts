@@ -9,6 +9,7 @@ import { LikeService } from "../services/like.service";
 import { CommentService } from "../services/comment.service";
 import { BlogService } from "../services/blog.service";
 import { ForbiddenError } from "./error.middleware";
+import { Minify } from "../utilities/minify";
 
 export enum SpecialPermission {
     AllowOwner = 'allow-owner',
@@ -75,7 +76,7 @@ async function isOwner(as: Authentication['id'], referenceType: ReferenceType, r
 export const RequiredMiddleware = (referenceType: ReferenceType, ...permissions: (string | SpecialPermission)[]): Middleware => {
     return async (request, response, next) => {
         let authentication: Authentication = request.authentication;
-        let referenceId = Validation.id(request);
+        let referenceId = Minify.decode(request.params.id as string);
         let failed = true;
 
         if (SpecialPermission.AllowOwner in permissions) {
