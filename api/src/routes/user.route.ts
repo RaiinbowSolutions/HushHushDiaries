@@ -38,9 +38,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
                 let pagination = Pagination.create(request, filtered, total);
     
                 return response.status(200).json(pagination);
-            } catch (error) {
-                
-            }
+            } catch (error) {}
         }
     );
 
