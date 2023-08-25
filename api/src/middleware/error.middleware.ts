@@ -54,6 +54,7 @@ export const ErrorMiddleware = (): ErrorHandlingMiddleware => {
             case 'Forbidden': code = 403; break;
             case 'Not Found': code = 404; break;
             case 'Unavailable': code = 503; break;
+            case 'RouteError': code = 404; name = 'Not Found'; break;
         }
 
         console.info('Request from', request.ip+':', '['+name+']', message);
