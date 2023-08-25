@@ -42,6 +42,9 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Dependency lock file
+package-lock.json
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
@@ -132,5 +135,6 @@ dist
 # Build folders
 **/dist/
 **/build/
+
 # Local Netlify folder
 .netlify
