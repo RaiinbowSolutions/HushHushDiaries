@@ -7,7 +7,7 @@ import { Pagination } from "../utilities/pagination";
 import { Minify } from "../utilities/minify";
 import { NotFoundError } from "../middleware/error.middleware";
 
-export const MessageRoute = (api: API, options: RegisterOptions) => {
+export const MessageRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix || '';
     const BaseURI = '/messages';
 
