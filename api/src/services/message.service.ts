@@ -1,14 +1,8 @@
-import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { CreateMessage, Message, SelectMessage, UpdateMessage } from "../models/message.model";
 import { SelectUser } from '../models/user.model';
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from "../utilities/minify";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -194,9 +188,9 @@ async function filterMessages(as: SelectUser['id'], messages: SelectMessage[], d
     return results;
 }
 async function filterMessage(as: SelectUser['id'], message: SelectMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message> {
-    let id = HashIds.encode(message.id);
-    let sender_id = HashIds.encode(message.sender_id);
-    let receiver_id = HashIds.encode(message.receiver_id);
+    let id = Minify.encode(message.id);
+    let sender_id = Minify.encode(message.sender_id);
+    let receiver_id = Minify.encode(message.receiver_id);
     let content = 'hidden';
 
     if (as == message.sender_id || as == message.receiver_id) content = message.content;

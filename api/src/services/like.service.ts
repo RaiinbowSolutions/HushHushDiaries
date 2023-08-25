@@ -1,14 +1,8 @@
-import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { CreateLike, Like, SelectLike, UpdateLike } from "../models/like.model";
 import { SelectUser } from '../models/user.model';
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from "../utilities/minify";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -123,9 +117,9 @@ async function filterLikes(as: SelectUser['id'], likes: SelectLike[], database: 
     return results;
 }
 async function filterLike(as: SelectUser['id'], like: SelectLike, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Like> {
-    let id = HashIds.encode(like.id);
-    let user_id = HashIds.encode(like.user_id);
-    let refecence_id = HashIds.encode(like.refecence_id);
+    let id = Minify.encode(like.id);
+    let user_id = Minify.encode(like.user_id);
+    let refecence_id = Minify.encode(like.refecence_id);
 
     return {
         ...like,

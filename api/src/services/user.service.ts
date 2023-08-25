@@ -1,14 +1,8 @@
-import 'dotenv/config';
 import { Kysely, Transaction, WhereExpressionFactory, InsertResult, UpdateResult, DeleteResult } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { CreateUser, CreateUserCredential, CreateUserDetail, CreateUserOption, CreateUserPermission, UpdateUser, UpdateUserCredential, UpdateUserDetail, UpdateUserOption, SelectUser, SelectUserCredential, SelectUserDetail, SelectUserOption, SelectUserPermission, User, UserDetail, UserOption, UserCredential } from "../models/user.model";
 import { SelectPermission } from "../models/permission.model";
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from "../utilities/minify";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -422,7 +416,7 @@ async function filterUsers(as: SelectUser['id'], users: SelectUser[], database: 
 }
 async function filterUser(as: SelectUser['id'], user: SelectUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User> {
     let option = await selectOption(user.id, database);
-    let id = HashIds.encode(user.id);
+    let id = Minify.encode(user.id);
     let email = 'hidden';
     let username = 'anonym';
 
@@ -448,8 +442,8 @@ async function filterUserOptions(as: SelectUser['id'], userOptions: SelectUserOp
     return results;
 }
 async function filterUserOption(as: SelectUser['id'], userOption: SelectUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption> {
-    let id = HashIds.encode(userOption.id);
-    let user_id = HashIds.encode(userOption.user_id);
+    let id = Minify.encode(userOption.id);
+    let user_id = Minify.encode(userOption.user_id);
 
     return {
         ...userOption,
@@ -470,8 +464,8 @@ async function filterUserDetails(as: SelectUser['id'], userDetials: SelectUserDe
 }
 async function filterUserDetail(as: SelectUser['id'], userDetial: SelectUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail> {
     let option = await selectOption(userDetial.user_id, database);
-    let id = HashIds.encode(userDetial.id);
-    let user_id = HashIds.encode(userDetial.user_id);
+    let id = Minify.encode(userDetial.id);
+    let user_id = Minify.encode(userDetial.user_id);
     let firstname = 'hidden';
     let lastname = 'hidden';
     let birthday = 'hidden';
@@ -510,8 +504,8 @@ async function filterUserCredentials(as: SelectUser['id'], userCredentials: Sele
     return results;
 }
 async function filterUserCredential(as: SelectUser['id'], userCredential: SelectUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential> {
-    let id = HashIds.encode(userCredential.id);
-    let user_id = HashIds.encode(userCredential.user_id);
+    let id = Minify.encode(userCredential.id);
+    let user_id = Minify.encode(userCredential.user_id);
     let password = 'hidden';
     let salt = 'hidden';
 

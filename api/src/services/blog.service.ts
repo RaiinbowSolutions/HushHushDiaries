@@ -1,15 +1,9 @@
-import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { SelectBlog, CreateBlog, UpdateBlog, Blog } from "../models/blog.model";
 import { SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from "../utilities/minify";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -156,9 +150,9 @@ async function filterBlogs(as: SelectUser['id'], blogs: SelectBlog[], database: 
     return results;
 }
 async function filterBlog(as: SelectUser['id'], blog: SelectBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog> {
-    let id = HashIds.encode(blog.id);
-    let category_id = HashIds.encode(blog.category_id);
-    let author_id = HashIds.encode(blog.author_id);
+    let id = Minify.encode(blog.id);
+    let category_id = Minify.encode(blog.category_id);
+    let author_id = Minify.encode(blog.author_id);
 
     return {
         ...blog,

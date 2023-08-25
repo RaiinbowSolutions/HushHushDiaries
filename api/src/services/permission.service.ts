@@ -1,14 +1,8 @@
-import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { CreatePermission, Permission, SelectPermission, UpdatePermission } from "../models/permission.model";
 import { SelectUser } from "../models/user.model";
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from '../utilities/minify';
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -111,7 +105,7 @@ async function filterPermissions(as: SelectUser['id'], permisions: SelectPermiss
     return results;
 }
 async function filterPermission(as: SelectUser['id'], request: SelectPermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission> {
-    let id = HashIds.encode(request.id);
+    let id = Minify.encode(request.id);
 
     return {
         ...request,

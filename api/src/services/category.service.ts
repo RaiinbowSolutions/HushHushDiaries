@@ -1,14 +1,8 @@
-import 'dotenv/config';
 import { SelectCategory, CreateCategory, UpdateCategory, Category } from '../models/category.model';
 import { SelectUser } from '../models/user.model';
+import { Minify } from '../utilities/minify';
 import { Database, DatabaseSchema } from './../utilities/database';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -117,7 +111,7 @@ async function filterCategories(as: SelectUser['id'], categories: SelectCategory
     return results;
 }
 async function filterCategory(as: SelectUser['id'], category: SelectCategory, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Category> {
-    let id = HashIds.encode(category.id);
+    let id = Minify.encode(category.id);
 
     return {
         ...category,

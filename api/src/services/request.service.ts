@@ -1,14 +1,8 @@
-import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { CreateRequest, Request, SelectRequest, UpdateRequest } from "../models/request.model";
 import { SelectUser } from "../models/user.model";
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from '../utilities/minify';
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -116,9 +110,9 @@ async function filterRequests(as: SelectUser['id'], requests: SelectRequest[], d
     return results;
 }
 async function filterRequest(as: SelectUser['id'], request: SelectRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request> {
-    let id = HashIds.encode(request.id);
-    let reference_id = HashIds.encode(request.reference_id);
-    let sender_id = HashIds.encode(request.sender_id);
+    let id = Minify.encode(request.id);
+    let reference_id = Minify.encode(request.reference_id);
+    let sender_id = Minify.encode(request.sender_id);
 
     return {
         ...request,

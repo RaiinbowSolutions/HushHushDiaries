@@ -1,15 +1,9 @@
-import 'dotenv/config';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 import { Database, DatabaseSchema } from "../utilities/database";
 import { SelectComment, CreateComment, UpdateComment, Comment } from "../models/comment.model";
 import { SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
-import HashIdsContructor from 'hashids';
-
-const Salt = process.env.HASH_ID_SALT || undefined;
-const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
-const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
+import { Minify } from "../utilities/minify";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///
@@ -151,9 +145,9 @@ async function filterComments(as: SelectUser['id'], comments: SelectComment[], d
     return results;
 }
 async function filterComment(as: SelectUser['id'], comment: SelectComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment> {
-    let id = HashIds.encode(comment.id);
-    let author_id = HashIds.encode(comment.author_id);
-    let refecence_id = HashIds.encode(comment.refecence_id);
+    let id = Minify.encode(comment.id);
+    let author_id = Minify.encode(comment.author_id);
+    let refecence_id = Minify.encode(comment.refecence_id);
 
     return {
         ...comment,
