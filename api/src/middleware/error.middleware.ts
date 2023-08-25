@@ -42,6 +42,8 @@ export class UnavailableError extends Error {
     }
 }
 
+type Level = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+
 export const ErrorMiddleware = (): ErrorHandlingMiddleware => {
     return async (error, request, response, next) => {
         let code = 500;
@@ -53,12 +55,16 @@ export const ErrorMiddleware = (): ErrorHandlingMiddleware => {
             case 'Unauthorized': code = 401; break;
             case 'Forbidden': code = 403; break;
             case 'Not Found': code = 404; break;
+            case 'Method Not Allowed': code = 405; break;
             case 'Unavailable': code = 503; break;
             case 'RouteError': code = 404; name = 'Not Found'; break;
+            case 'MethodError': code = 405; name = 'Method Not Allowed'; break;
         }
 
-        console.info('Request from', request.ip+':', '['+name+']', message);
-        if (code >= 500) console.error(error);
+        let level: Level = code >= 500 ? 'ERROR' : 'INFO';
+
+        if (level !== 'ERROR') console.info('Logging from', request.ip+':', level, '['+name+']', code, message);
+        if (level !== 'INFO') console.error(error);
 
         return response.error(code, message);
     }
