@@ -7,12 +7,15 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
+    "@types/crypto-js": "^4.1.1",
     "@types/jsonwebtoken": "^9.0.2",
     "typescript": "^5.1.6"
   },
   "dependencies": {
     "@planetscale/database": "^1.10.0",
     "aws-lambda": "^1.0.7",
+    "crypto-js": "^4.1.1",
+    "crypto-random-string": "^5.0.0",
     "dotenv": "^16.3.1",
     "hashids": "^2.3.0",
     "jsonwebtoken": "^9.0.1",

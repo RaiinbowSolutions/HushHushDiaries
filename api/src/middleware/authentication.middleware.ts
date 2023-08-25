@@ -1,10 +1,7 @@
-import 'dotenv/config';
 import { Middleware } from "lambda-api";
-import JWT, { JwtPayload } from 'jsonwebtoken';
 import { UserService } from '../services/user.service';
+import { Token } from "../utilities/token";
 
-const JsonWebTokenSecret = process.env.JSON_WEB_TOKEN_SECRET || '823aa5983cb0e574bdf87d2f4477a431e2542c16ec99594d0463d5aa37022b0a';
-const JsonWebTokenIssuer = process.env.JSON_WEB_TOKEN_ISSUER || 'DEVELOPMENT';
 
 export type Authentication = {
     authenticated: boolean,
@@ -28,12 +25,7 @@ export const AuthenticationMiddleware = (): Middleware => {
 
         if (auth.type == 'Bearer' && auth.value != null) {
             try {
-                let payload: JwtPayload = JWT.verify(auth.value, JsonWebTokenSecret, {
-                    ignoreExpiration: false,
-                    ignoreNotBefore: false,
-                    issuer: JsonWebTokenIssuer
-                }) as JwtPayload;
-    
+                let payload = Token.decode(auth.value);
                 let total = await UserService.permissions.countPermissions(payload.id);
                 let userPermissions = await UserService.permissions.selectPermissions(payload.id, 0, Number(total));
                 let permissions = userPermissions.map((userPermission) => userPermission.name);
