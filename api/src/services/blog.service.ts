@@ -47,12 +47,12 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(blogIsListable)
         .as('total')
     )
+    .where(blogIsListable)
     .executeTakeFirstOrThrow();
 
-    return result.total;
+    return BigInt(result.total);
 }
 async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectBlog[]> {
     let results = await database
@@ -126,12 +126,12 @@ async function countLikes(blogId: SelectLike['refecence_id'], database: Kysely<D
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(blogLikeIsListable(blogId))
         .as('total')
     )
+    .where(blogLikeIsListable(blogId))
     .executeTakeFirstOrThrow();
 
-    return result.total;
+    return BigInt(result.total);
 }
 
 ///////////////////////////////////////////////////////

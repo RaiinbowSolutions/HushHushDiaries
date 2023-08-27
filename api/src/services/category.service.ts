@@ -32,12 +32,12 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(CategoryIsListable)
         .as('total')
     )
+    .where(CategoryIsListable)
     .executeTakeFirstOrThrow();
 
-    return result.total;
+    return BigInt(result.total);
 }
 
 async function selects(offset: number, limit:number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectCategory[]> {
