@@ -20,31 +20,30 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
             'password': { type: 'string', required: false },
         }),
         async (request: Request, response: Response) => {
-            if (Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
+            if (!Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
             let password = request.body.password as string;
+            let id = await UserService.findUserIdByEmail(request.body.email as string);
+            
+            if (id === undefined) throw new BadRequestError(`Given login data did not match`);
 
-            try {
-                let id = await UserService.findUserIdByEmail(request.params.email as string);
-                if (id === undefined) throw new BadRequestError(`Given login data did not match`);
+            let credential = await UserService.credentials.selectCredential(id);
+            let hash = Encryption.hashing(password, credential.salt);
 
-                let credential = await UserService.credentials.selectCredential(id);
-                let hash = Encryption.hashing(password, credential.salt);
-                if (hash !== credential.password) throw new BadRequestError(`Given login data did not match`);
+            if (hash !== credential.password) throw new BadRequestError(`Given login data did not match`);
 
-                let token = Token.encode({
-                    id,
-                });
+            let token = Token.encode({
+                id,
+            });
 
-                return response
-                .cookie('token', token, {
-                    httpOnly: true,
-                    expires: addMinute(new Date(), 10),
-                    secure: true,
-                    sameSite: 'Strict',
-                })
-                .status(200)
-                .json(token);
-            } catch (error) {}
+            return response
+            .cookie('token', token, {
+                httpOnly: true,
+                expires: addMinute(new Date(), 10),
+                secure: true,
+                sameSite: 'Strict',
+            })
+            .status(200)
+            .json(token);
         }
     );
 }

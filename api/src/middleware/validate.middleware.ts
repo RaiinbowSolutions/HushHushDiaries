@@ -56,11 +56,7 @@ export const ValidateMiddleware = (on: 'body' | 'params' | 'query', schema: Vali
             let {type, required} = getKeyProperties(schema[key]);
 
             if (value === undefined && required) failed = true;
-            if (on === 'params' || on === 'query') {
-                if (!valueConvertable(value, type) && value !== undefined) failed = true;
-            } else {
-                if (typeof value !== type && value !== undefined) failed = true;
-            }
+            if (!valueConvertable(value, type) && value !== undefined) failed = true;
 
             if (failed) break;
         }

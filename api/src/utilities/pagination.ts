@@ -16,7 +16,7 @@ function getPaginationData(request: Request) {
     if (page < 1) page = 1;
     if (limit < 1) limit = 1;
 
-    let offset = page - 1 * limit;
+    let offset = (page - 1) * limit;
 
     return {
         page,
