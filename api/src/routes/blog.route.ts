@@ -47,7 +47,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
 
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Category not found');
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
             let id = Minify.decode(request.params.id as string);
 
             try {
@@ -56,7 +56,232 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
 
                 return response.status(200).json(filtered);
             } catch (error) {
-                throw new NotFoundError('Category not found');
+                throw new NotFoundError('Blog not found');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI, 
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            try {
+                
+                return response.status(201).json; 
+            }
+            catch {
+                throw new NotFoundError('Blog not created');
+            }
+        }
+    );
+
+    api.patch(Prefix + BaseURI + '/[id]', 
+        ValidateMiddleware ('params', { 'id': 'string' }),
+        Authenticated(), 
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;  
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog not updated');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/deactivate/[id]', 
+        ValidateMiddleware('params', { 'id': 'string'}), 
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog not deactivated');
+            }
+        }
+    );
+
+    api.delete(Prefix + BaseURI + '/[id]',
+        ValidateMiddleware('params', { 'id': 'string' }),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json; 
+            }
+            catch {
+                throw new NotFoundError('Blog not deleted');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/approve/[id]',
+        ValidateMiddleware('params', {'id': 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog not approved');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/review/[id]',
+        ValidateMiddleware('params', {'id': 'string'}),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog not reviewed');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/publish/[id]',
+        ValidateMiddleware('params', { 'id': 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog not published');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/publish/[id]',
+        ValidateMiddleware('params', {'id': 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog not unpublished');
+            }
+        }
+    );
+
+    api.get(Prefix + BaseURI + '/likes/count/[id]',
+        ValidateMiddleware('params', {'id': 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(200).json;
+            }
+            catch {
+                throw new NotFoundError('Blog likes not found');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/likes/[id]',
+        ValidateMiddleware('params', {'id': 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog like not executed');
+            }
+        }
+    );
+
+    api.delete(Prefix + BaseURI + '/likes/[id]',
+        ValidateMiddleware('params', {'id': 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;  
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Blog not found');
+            let id = Minify.decode(request.params.id as string);
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Blog like not removed');
+            }
+        }
+    );
+
+    api.get(Prefix + BaseURI, 
+        ValidateMiddleware('query', {
+            'page': {type: 'number', required: false},
+            'limit': {type: 'number', required: false},
+        }),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;  
+            let {limit, offset} = Pagination.getData(request);
+
+            try {
+
+                return response.status(200).json;
+            }
+            catch {
+                throw new NotFoundError('Blog owned list not found');
             }
         }
     );
