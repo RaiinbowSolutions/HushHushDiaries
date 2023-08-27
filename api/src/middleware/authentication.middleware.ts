@@ -23,8 +23,6 @@ export const AuthenticationMiddleware = (): Middleware => {
             auth.value = request.cookies.token;
         }
 
-        console.info('Authentication from', request.ip+':', auth.type, auth.value);
-
         if (auth.type == 'Bearer' && auth.value != null) {
             let payload = Token.decode(auth.value);
             let id = BigInt(payload.id);
