@@ -1,5 +1,5 @@
 import { Kysely, Transaction, WhereExpressionFactory, InsertResult, UpdateResult, DeleteResult } from "kysely";
-import { Database, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
 import { CreateUser, CreateUserCredential, CreateUserDetail, CreateUserOption, CreateUserPermission, UpdateUser, UpdateUserCredential, UpdateUserDetail, UpdateUserOption, SelectUser, SelectUserCredential, SelectUserDetail, SelectUserOption, SelectUserPermission, User, UserDetail, UserOption, UserCredential } from "../models/user.model";
 import { SelectPermission } from "../models/permission.model";
 import { Minify } from "../utilities/minify";
@@ -9,7 +9,7 @@ import { Minify } from "../utilities/minify";
 ///////////////////////////////////////////////////////
 
 const DefaultUser: Omit<CreateUser, 'email'> = {
-    anonym: false,
+    anonym: true,
     validated: false,
     banned: false,
     deleted: false,
@@ -69,12 +69,12 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(UserIsListable)
         .as('total')
     )
+    .where(UserIsListable)
     .executeTakeFirstOrThrow();
 
-    return result.total;
+    return BigInt(result.total);
 }
 async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectUser[]> {
     let results = await database
@@ -191,7 +191,7 @@ async function markAsDeleted(userId: SelectUser['id'], database: Kysely<Database
             expressionBuilder('id', '=', userId),
             expressionBuilder('deleted', '!=', true),
         ]))
-        .set({deleted: true, deleted_at: new Date().toUTCString()})
+        .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
         .executeTakeFirst();
 
         let userOptionResult = await transaction
@@ -200,7 +200,7 @@ async function markAsDeleted(userId: SelectUser['id'], database: Kysely<Database
             expressionBuilder('user_id', '=', userId),
             expressionBuilder('deleted', '!=', true),
         ]))
-        .set({deleted: true, deleted_at: new Date().toUTCString()})
+        .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
         .executeTakeFirst();
 
         let userDetailResult = await transaction
@@ -209,7 +209,7 @@ async function markAsDeleted(userId: SelectUser['id'], database: Kysely<Database
             expressionBuilder('user_id', '=', userId),
             expressionBuilder('deleted', '!=', true),
         ]))
-        .set({deleted: true, deleted_at: new Date().toUTCString()})
+        .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
         .executeTakeFirst();
 
         let userCredentialResult = await transaction
@@ -218,7 +218,7 @@ async function markAsDeleted(userId: SelectUser['id'], database: Kysely<Database
             expressionBuilder('user_id', '=', userId),
             expressionBuilder('deleted', '!=', true),
         ]))
-        .set({deleted: true, deleted_at: new Date().toUTCString()})
+        .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
         .executeTakeFirst();
 
         let userPermissionResults = await transaction
@@ -227,7 +227,7 @@ async function markAsDeleted(userId: SelectUser['id'], database: Kysely<Database
             expressionBuilder('user_id', '=', userId),
             expressionBuilder('deleted', '!=', true),
         ]))
-        .set({deleted: true, deleted_at: new Date().toUTCString()})
+        .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
         .execute();
 
         let userPermissionResult = userPermissionResults.reduce((previousValue, currentValue) => new UpdateResult(currentValue.numUpdatedRows + previousValue.numUpdatedRows, undefined));
@@ -244,11 +244,11 @@ async function markAsDeleted(userId: SelectUser['id'], database: Kysely<Database
     return result;
 }
 async function markAsBanned(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(userId, {banned: true, banned_at: new Date().toUTCString()}, database);
+    let result = await update(userId, {banned: true, banned_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsValidated(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(userId, {validated: true, validated_at: new Date().toUTCString()}, database);
+    let result = await update(userId, {validated: true, validated_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 
@@ -331,19 +331,19 @@ async function countPermissions(userId: SelectUserPermission['user_id'], databas
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
-        .filterWhere(UserPermissionIsListable(userId))
         .as('total')
     )
+    .where(UserPermissionIsListable(userId))
     .executeTakeFirstOrThrow();
 
-    return result.total;
+    return BigInt(result.total);
 }
 async function selectPermissions(userId: SelectUserPermission['user_id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectPermission[]> {
     let results = await database
     .selectFrom('user_permissions')
-    .innerJoin('permisions', 'permisions.id', 'user_permissions.id')
+    .innerJoin('permissions', 'permissions.id', 'user_permissions.permission_id')
     .where(UserPermissionIsListable(userId))
-    .selectAll('permisions')
+    .selectAll('permissions')
     .offset(offset)
     .limit(limit)
     .execute();
@@ -378,7 +378,7 @@ async function removePermission(userId: SelectUserPermission['user_id'], permiss
         expressionBuilder('permission_id', '=', permissionId),
         expressionBuilder('deleted', '!=', true),
     ]))
-    .set({deleted: true, deleted_at: new Date().toUTCString()})
+    .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
     .executeTakeFirst();
 
     return result;
