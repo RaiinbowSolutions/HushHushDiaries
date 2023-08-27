@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
 import { CreatePermission, Permission, SelectPermission, UpdatePermission } from "../models/permission.model";
 import { SelectUser } from "../models/user.model";
 import { Minify } from '../utilities/minify';
@@ -16,9 +16,9 @@ const DefaultPermission: Omit<CreatePermission, 'name'> = {
 /// Filters                                         ///
 ///////////////////////////////////////////////////////
 
-const permissionIsListable: WhereExpressionFactory<DatabaseSchema, 'permisions'> = (expressionBuilder) => {
+const permissionIsListable: WhereExpressionFactory<DatabaseSchema, 'permissions'> = (expressionBuilder) => {
     return expressionBuilder.or([
-        expressionBuilder('permisions.deleted', '!=', true),
+        expressionBuilder('permissions.deleted', '!=', true),
     ]);
 }
 
@@ -28,7 +28,7 @@ const permissionIsListable: WhereExpressionFactory<DatabaseSchema, 'permisions'>
 
 async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
     let result = await database
-    .selectFrom('permisions')
+    .selectFrom('permissions')
     .select(
         (expressionBuilder) => expressionBuilder.fn
         .count<bigint>('id')
@@ -41,7 +41,7 @@ async function counts(database: Kysely<DatabaseSchema> | Transaction<DatabaseSch
 }
 async function selects(offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectPermission[]> {
     let results = await database
-    .selectFrom('permisions')
+    .selectFrom('permissions')
     .selectAll()
     .where(permissionIsListable)
     .offset(offset)
@@ -52,7 +52,7 @@ async function selects(offset: number, limit: number, database: Kysely<DatabaseS
 }
 async function select(permissionId: SelectPermission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectPermission> {
     let result = await database
-    .selectFrom('permisions')
+    .selectFrom('permissions')
     .selectAll()
     .where('id', '=', permissionId)
     .executeTakeFirstOrThrow();
@@ -61,7 +61,7 @@ async function select(permissionId: SelectPermission['id'], database: Kysely<Dat
 }
 async function insert(name: CreatePermission['name'], description: CreatePermission['description'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
-    .insertInto('permisions')
+    .insertInto('permissions')
     .values({...DefaultPermission, name, description})
     .executeTakeFirstOrThrow();
 
@@ -69,7 +69,7 @@ async function insert(name: CreatePermission['name'], description: CreatePermiss
 }
 async function update(permissionId: SelectPermission['id'], updatePermissionData: UpdatePermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
     let result = await database
-    .updateTable('permisions')
+    .updateTable('permissions')
     .where('id', '=', permissionId)
     .set(updatePermissionData)
     .executeTakeFirstOrThrow();
@@ -78,14 +78,14 @@ async function update(permissionId: SelectPermission['id'], updatePermissionData
 }
 async function Delete(permissionId: SelectPermission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<DeleteResult> {
     let result = await database
-    .deleteFrom('permisions')
+    .deleteFrom('permissions')
     .where('id', '=', permissionId)
     .executeTakeFirstOrThrow();
 
     return result;
 }
 async function markAsDeleted(permissionId: SelectPermission['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(permissionId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
+    let result = await update(permissionId, {deleted: true, deleted_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 
@@ -93,11 +93,11 @@ async function markAsDeleted(permissionId: SelectPermission['id'], database: Kys
 /// Permission Filter Functions                     ///
 ///////////////////////////////////////////////////////
 
-async function filterPermissions(as: SelectUser['id'], permisions: SelectPermission[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
+async function filterPermissions(as: SelectUser['id'], permissions: SelectPermission[], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission[]> {
     let results = await database.transaction().execute(async (transaction) => {
         let filtered: Permission[] = [];
 
-        for (let permission of permisions) filtered.push(await filterPermission(as, permission, transaction));
+        for (let permission of permissions) filtered.push(await filterPermission(as, permission, transaction));
 
         return filtered;
     })
