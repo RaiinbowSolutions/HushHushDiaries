@@ -59,6 +59,7 @@ export const ErrorMiddleware = (): ErrorHandlingMiddleware => {
             case 'Unavailable': code = 503; break;
             case 'RouteError': code = 404; name = 'Not Found'; break;
             case 'MethodError': code = 405; name = 'Method Not Allowed'; break;
+            case 'TokenExpiredError': code = 401; name = 'Token Expired Error'; message = 'Authentication is expired'; break;
         }
 
         let level: Level = code >= 500 ? 'ERROR' : 'INFO';
