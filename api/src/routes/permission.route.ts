@@ -81,6 +81,9 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authencation;
 
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
+            let id = Minify.decode(request.params.id as string);
+
             try {
 
                 return response.status(204).json;
@@ -97,6 +100,9 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
 
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
+            let id = Minify.decode(request.params.id as string);
+
             try {
 
                 return response.status(204).json;
@@ -112,6 +118,9 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
         Authenticated(),
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication; 
+
+            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
+            let id = Minify.decode(request.params.id as string);
 
             try {
 
