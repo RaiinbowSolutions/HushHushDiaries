@@ -53,7 +53,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_GetUser
      */
-    api.get(Prefix + BaseURI + '/[id]',
+    api.get(Prefix + BaseURI + '/:id',
         ValidateMiddleware('params', { 'id': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -71,11 +71,11 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_GetUser_by_Email
      */
-    api.get(Prefix + BaseURI + '/email/[email]',
+    api.get(Prefix + BaseURI + '/email/:email',
         ValidateMiddleware('params', { 'email': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            if (Validation.email(request.params.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
+            if (!Validation.email(request.params.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
 
             let id = await UserService.findUserIdByEmail(request.params.email as string);
 
@@ -94,7 +94,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             'password': 'string',
         }),
         async (request: Request, response: Response) => {
-            if (Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
+            if (!Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
 
             let emailExist = await UserService.findUserIdByEmail(request.body.email as string);
 
@@ -103,13 +103,14 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             let email = request.body.email as string;
             let password = request.body.password as string;
             let salt = Encryption.generateSalt();
-            let result = await UserService.insert(email, password, salt);
+            let hash = Encryption.hashing(password, salt);
+            let result = await UserService.insert(email, hash, salt);
             let id = Minify.encode(result.insertId as bigint);
 
             return response.status(201).json({
                 created: true,
                 id,
-                path: `/${id}`,
+                path: `${request.path}/${id}`,
             });
         }
     )
@@ -117,7 +118,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUser
      */
-    api.patch(Prefix + BaseURI + '/[id]',
+    api.patch(Prefix + BaseURI + '/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             email: { type: 'string', required: false },
@@ -134,7 +135,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             let username = request.body.username as string | undefined;
             let anonym = request.body.anonym as boolean | undefined;
 
-            if (email !== undefined && Validation.email(email)) throw new BadRequestError(`Given 'email' is not an valid email address`);
+            if (email !== undefined && !Validation.email(email)) throw new BadRequestError(`Given 'email' is not an valid email address`);
             if (email !== undefined) {
                 let user = await UserService.select(id);
                 let emailExist = await UserService.findUserIdByEmail(email);
@@ -150,7 +151,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
 
             return response.status(200).json({
                 updated: true,
-                updated_rows: result.numUpdatedRows,
+                updated_rows: '' + result.numUpdatedRows,
             });
         }
     )
@@ -158,7 +159,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_DeleteUser
      */
-    api.delete(Prefix + BaseURI + '/[id]',
+    api.delete(Prefix + BaseURI + '/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('users', 'delete-user'),
@@ -178,7 +179,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_DeactivateUser
      */
-    api.post(Prefix + BaseURI + '/deactivate/[id]',
+    api.post(Prefix + BaseURI + '/deactivate/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'deactivate-user'),
@@ -198,7 +199,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_BanUser
      */
-    api.post(Prefix + BaseURI + '/ban/[id]',
+    api.post(Prefix + BaseURI + '/ban/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('users', 'ban-user'),
@@ -210,7 +211,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
 
             return response.status(204).json({
                 banned: true,
-                banned_rows: result.numUpdatedRows,
+                banned_rows: '' + result.numUpdatedRows,
             });
         }
     )
@@ -218,7 +219,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_ValidateUser
      */
-    api.post(Prefix + BaseURI + '/validate/[id]',
+    api.post(Prefix + BaseURI + '/validate/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'validate-user'),
@@ -230,7 +231,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
 
             return response.status(204).json({
                 validated: true,
-                validated_rows: result.numUpdatedRows,
+                validated_rows: '' + result.numUpdatedRows,
             });
         }
     )
@@ -238,7 +239,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_GetUserOption
      */
-    api.get(Prefix + BaseURI + '/option/[id]',
+    api.get(Prefix + BaseURI + '/option/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -256,7 +257,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUserOption
      */
-    api.patch(Prefix + BaseURI + '/option/[id]',
+    api.patch(Prefix + BaseURI + '/option/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             font_size: { type: 'string', required: false },
@@ -271,7 +272,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             profile_description_show_state: { type: 'string', required: false },
         }),
         Authenticated(),
-        RequiredMiddleware('users', AllowOwner, 'update-user-option'),
+        RequiredMiddleware('user_options', AllowOwner, 'update-user-option'),
         async (request: Request, response: Response) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -301,7 +302,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
 
             return response.status(204).json({
                 updated: true,
-                updated_rows: result.numUpdatedRows,
+                updated_rows: '' + result.numUpdatedRows,
             });
         }
     )
@@ -309,7 +310,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_GetUserDetail
      */
-    api.get(Prefix + BaseURI + '/detail/[id]',
+    api.get(Prefix + BaseURI + '/detail/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -327,7 +328,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUserDetail
      */
-    api.patch(Prefix + BaseURI + '/detail/[id]',
+    api.patch(Prefix + BaseURI + '/detail/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             firstname: { type: 'string', required: false },
@@ -338,7 +339,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             profile_description: { type: 'string', required: false },
         }),
         Authenticated(),
-        RequiredMiddleware('users', AllowOwner, 'update-user-detail'),
+        RequiredMiddleware('user_details', AllowOwner, 'update-user-detail'),
         async (request: Request, response: Response) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -360,7 +361,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
 
             return response.status(204).json({
                 updated: true,
-                updated_rows: result.numUpdatedRows,
+                updated_rows: '' + result.numUpdatedRows,
             });
         }
     )
@@ -368,11 +369,11 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUserCredential
      */
-    api.patch(Prefix + BaseURI + '/credential/[id]',
+    api.patch(Prefix + BaseURI + '/credential/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { password: { type: 'string', required: false} }),
         Authenticated(),
-        RequiredMiddleware('users', AllowOwner, 'update-user-credential'),
+        RequiredMiddleware('user_credentials', AllowOwner, 'update-user-credential'),
         async (request: Request, response: Response) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -386,7 +387,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
 
             return response.status(204).json({
                 updated: true,
-                updated_rows: result.numUpdatedRows,
+                updated_rows: '' + result.numUpdatedRows,
             })
         }
     )
@@ -394,7 +395,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UserPermissionCounts
      */
-    api.get(Prefix + BaseURI + '/permissions/counts/[id]',
+    api.get(Prefix + BaseURI + '/permissions/counts/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -410,7 +411,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UserPermissions
      */
-    api.get(Prefix + BaseURI + '/permissions/[id]',
+    api.get(Prefix + BaseURI + '/permissions/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('query', {
             'page': { type: 'number', required: false },
@@ -435,11 +436,11 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_AddUserPermission
      */
-    api.post(Prefix + BaseURI + '/permissions/[id]',
+    api.post(Prefix + BaseURI + '/permissions/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { permission_id: 'bigint' }),
         Authenticated(),
-        RequiredMiddleware('users', 'add-user-permission'),
+        RequiredMiddleware('user_permissions', 'add-user-permission'),
         async (request: Request, response: Response) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -456,11 +457,11 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_RemoveUserPermission
      */
-    api.delete(Prefix + BaseURI + '/permissions/[id]',
+    api.delete(Prefix + BaseURI + '/permissions/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { permission_id: 'bigint' }),
         Authenticated(),
-        RequiredMiddleware('users', 'remove-user-permission'),
+        RequiredMiddleware('user_permissions', 'remove-user-permission'),
         async (request: Request, response: Response) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
