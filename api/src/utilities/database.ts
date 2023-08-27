@@ -9,7 +9,7 @@ import { PermissionTable } from "../models/permission.model";
 import { RequestTable } from "../models/request.model";
 import { UserCredentialTable, UserDetailTable, UserOptionTable, UserPermissionTable, UserTable } from "../models/user.model";
 
-export type ReferenceType = 'blogs' | 'categories' | 'comments' | 'likes' | 'messages' | 'permisions' | 'requests' | 'users' | 'user_credentials' | 'user_details' | 'user_options' | 'user_permissions';
+export type ReferenceType = 'blogs' | 'categories' | 'comments' | 'likes' | 'messages' | 'permissions' | 'requests' | 'users' | 'user_credentials' | 'user_details' | 'user_options' | 'user_permissions';
 
 export interface DatabaseSchema {
     blogs: BlogTable,
@@ -17,7 +17,7 @@ export interface DatabaseSchema {
     comments: CommentTable,
     likes: LikeTable,
     messages: MessageTable,
-    permisions: PermissionTable,
+    permissions: PermissionTable,
     requests: RequestTable,
     users: UserTable,
     user_credentials: UserCredentialTable,
@@ -31,3 +31,14 @@ export const Database = new Kysely<DatabaseSchema>({
       url: process.env.PLANETSCALE_DATABASE_URL
     }),
 });
+
+export const DatabaseDateString = (date: Date): string => {
+    let year = date.getUTCFullYear();
+    let month = date.getUTCMonth() + 1;
+    let day = date.getUTCDate();
+    let hours = date.getUTCHours();
+    let minutes = date.getUTCMinutes();
+    let seconds = date.getUTCSeconds();
+
+    return `${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day} ${hours}:${minutes}:${seconds}`;
+}
