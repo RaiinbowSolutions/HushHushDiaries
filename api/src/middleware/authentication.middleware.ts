@@ -39,8 +39,8 @@ export const AuthenticationMiddleware = (): Middleware => {
             authentication.id = payload.id;
             authentication.permissions = permissions;
             authentication.authenticated = true;
-            authentication.banned = user.banned;
-            authentication.deleted = user.deleted;
+            authentication.banned = user.banned ? true : false;
+            authentication.deleted = user.deleted ? true : false;
 
             console.info('Authentication from', request.ip+':', authentication);
         }
