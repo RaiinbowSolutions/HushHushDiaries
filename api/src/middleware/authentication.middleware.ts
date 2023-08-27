@@ -34,10 +34,10 @@ export const AuthenticationMiddleware = (): Middleware => {
             authentication.permissions = permissions;
             authentication.authenticated = true;
 
-            console.log('Authentication from', request.ip+':', authentication);
+            console.info('Authentication from', request.ip+':', authentication);
         }
 
-        if (!authentication.authenticated) console.log('Authentication from', request.ip+':', 'Not authenticated');
+        if (!authentication.authenticated) console.info('Authentication from', request.ip+':', 'Not authenticated');
 
         request.authentication = authentication;
 
