@@ -1,12 +1,15 @@
 import { Middleware } from "lambda-api";
 import { UserService } from '../services/user.service';
 import { Token } from "../utilities/token";
+import { UnauthorizedError } from "./error.middleware";
 
 
 export type Authentication = {
     authenticated: boolean,
     id: bigint,
     permissions: string[],
+    banned: boolean,
+    deleted: boolean
 }
 
 export const AuthenticationMiddleware = (): Middleware => {
@@ -16,6 +19,8 @@ export const AuthenticationMiddleware = (): Middleware => {
             authenticated: false,
             id: BigInt(0),
             permissions: [],
+            banned: false,
+            deleted: false,
         };
 
         if ('token' in request.cookies) {
@@ -26,6 +31,7 @@ export const AuthenticationMiddleware = (): Middleware => {
         if (auth.type == 'Bearer' && auth.value != null) {
             let payload = Token.decode(auth.value);
             let id = BigInt(payload.id);
+            let user = await UserService.select(id);
             let total = await UserService.permissions.countPermissions(id);
             let userPermissions = await UserService.permissions.selectPermissions(id, 0, Number(total));
             let permissions = userPermissions.map((userPermission) => userPermission.name);
@@ -33,6 +39,8 @@ export const AuthenticationMiddleware = (): Middleware => {
             authentication.id = payload.id;
             authentication.permissions = permissions;
             authentication.authenticated = true;
+            authentication.banned = user.banned;
+            authentication.deleted = user.deleted;
 
             console.info('Authentication from', request.ip+':', authentication);
         }
