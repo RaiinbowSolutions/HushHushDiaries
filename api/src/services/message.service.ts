@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
 import { CreateMessage, Message, SelectMessage, UpdateMessage } from "../models/message.model";
 import { SelectUser } from '../models/user.model';
 import { Minify } from "../utilities/minify";
@@ -106,11 +106,11 @@ async function Delete(messageId: SelectMessage['id'], database: Kysely<DatabaseS
     return result;
 }
 async function markAsDeleted(messageId: SelectMessage['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(messageId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
+    let result = await update(messageId, {deleted: true, deleted_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsReviewed(messageId: SelectMessage['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(messageId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
+    let result = await update(messageId, {reviewed: true, reviewed_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 

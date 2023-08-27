@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
 import { SelectComment, CreateComment, UpdateComment, Comment } from "../models/comment.model";
 import { SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
@@ -99,15 +99,15 @@ async function Delete(commentId: SelectComment['id'], database: Kysely<DatabaseS
     return result;
 }
 async function markAsDeleted(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(commentId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
+    let result = await update(commentId, {deleted: true, deleted_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsReviewed(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(commentId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
+    let result = await update(commentId, {reviewed: true, reviewed_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsApproved(commentId: SelectComment['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(commentId, {approved: true, approved_at: new Date().toUTCString()}, database);
+    let result = await update(commentId, {approved: true, approved_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 

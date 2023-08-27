@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
 import { CreateLike, Like, SelectLike, UpdateLike } from "../models/like.model";
 import { SelectUser } from '../models/user.model';
 import { Minify } from "../utilities/minify";
@@ -97,7 +97,7 @@ async function Delete(likeId: SelectLike['id'], database: Kysely<DatabaseSchema>
     return result;
 }
 async function markAsDeleted(likeId: SelectLike['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(likeId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
+    let result = await update(likeId, {deleted: true, deleted_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 

@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
 import { SelectBlog, CreateBlog, UpdateBlog, Blog } from "../models/blog.model";
 import { SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
@@ -100,19 +100,19 @@ async function Delete(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema>
     return result;
 }
 async function markAsDeleted(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(blogId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
+    let result = await update(blogId, {deleted: true, deleted_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsReviewed(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(blogId, {reviewed: true, reviewed_at: new Date().toUTCString()}, database);
+    let result = await update(blogId, {reviewed: true, reviewed_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsApproved(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(blogId, {approved: true, approved_at: new Date().toUTCString()}, database);
+    let result = await update(blogId, {approved: true, approved_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 async function markAsPublished(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(blogId, {published: true, published_at: new Date().toUTCString()}, database);
+    let result = await update(blogId, {published: true, published_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 

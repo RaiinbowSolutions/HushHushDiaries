@@ -1,7 +1,7 @@
 import { SelectCategory, CreateCategory, UpdateCategory, Category } from '../models/category.model';
 import { SelectUser } from '../models/user.model';
 import { Minify } from '../utilities/minify';
-import { Database, DatabaseSchema } from './../utilities/database';
+import { Database, DatabaseDateString, DatabaseSchema } from './../utilities/database';
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
 
 ///////////////////////////////////////////////////////
@@ -91,7 +91,7 @@ async function Delete(categoryId: SelectCategory['id'], database: Kysely<Databas
 }
 
 async function markAsDeleted(categoryId: SelectCategory['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
-    let result = await update(categoryId, {deleted: true, deleted_at: new Date().toUTCString()}, database);
+    let result = await update(categoryId, {deleted: true, deleted_at: DatabaseDateString(new Date())}, database);
     return result;
 }
 
