@@ -15,7 +15,9 @@ function encode(id: bigint): string {
 }
 
 function validate(id: string): boolean {
-    return HashIds.isValidId(id);
+    let decode = HashIds.decode(id)[0];
+    if (decode === undefined) return false;
+    else return true;
 }
 
 export const Minify = {
