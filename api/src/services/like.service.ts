@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema, ReferenceType } from "../utilities/database";
 import { CreateLike, Like, SelectLike, UpdateLike } from "../models/like.model";
 import { SelectUser } from '../models/user.model';
 import { Minify } from "../utilities/minify";
@@ -117,9 +117,10 @@ async function filterLikes(as: SelectUser['id'], likes: SelectLike[], database: 
     return results;
 }
 async function filterLike(as: SelectUser['id'], like: SelectLike, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Like> {
-    let id = Minify.encode(like.id);
-    let user_id = Minify.encode(like.user_id);
-    let refecence_id = Minify.encode(like.refecence_id);
+    let id = Minify.encode('likes', like.id);
+    let user_id = Minify.encode('users', like.user_id);
+    let refecenceType: ReferenceType = like.refecence_type === 'blog' ? 'blogs' : 'comments';
+    let refecence_id = Minify.encode(refecenceType, like.refecence_id);
 
     return {
         ...like,

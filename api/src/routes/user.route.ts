@@ -57,10 +57,10 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { 'id': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
             let authentication: Authentication = request.authentication;
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let user = await UserService.select(id);
             let filtered = await UserService.filters.user(authentication.id, user);
 
@@ -105,7 +105,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             let salt = Encryption.generateSalt();
             let hash = Encryption.hashing(password, salt);
             let result = await UserService.insert(email, hash, salt);
-            let id = Minify.encode(result.insertId as bigint);
+            let id = Minify.encode('users', result.insertId as bigint);
 
             return response.status(201).json({
                 created: true,
@@ -128,9 +128,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'update-user'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let email = request.body.email as string | undefined;
             let username = request.body.username as string | undefined;
             let anonym = request.body.anonym as boolean | undefined;
@@ -164,9 +164,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('users', 'delete-user'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let result = await UserService.delete(id);
 
             return response.status(200).json({
@@ -184,9 +184,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'deactivate-user'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let result = await UserService.markAsDeleted(id);
 
             return response.status(204).json({
@@ -204,9 +204,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('users', 'ban-user'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let result = await UserService.markAsBanned(id);
 
             return response.status(204).json({
@@ -224,9 +224,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'validate-user'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let result = await UserService.markAsValidated(id);
 
             return response.status(204).json({
@@ -243,10 +243,10 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
             let authentication: Authentication = request.authentication;
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let option = await UserService.options.selectOption(id);
             let filtered = await UserService.filters.userOption(authentication.id, option);
 
@@ -274,9 +274,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('user_options', AllowOwner, 'update-user-option'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let font_size = request.body.font_size;
             let design_tempature = request.body.design_tempature;
             let email_show_state = request.body.email_show_state;
@@ -314,10 +314,10 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
             let authentication: Authentication = request.authentication;
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let detail = await UserService.details.selectDetail(id);
             let filtered = await UserService.filters.userDetial(authentication.id, detail);
 
@@ -341,9 +341,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('user_details', AllowOwner, 'update-user-detail'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let firstname = request.body.firstname;
             let lastname = request.body.lastname;
             let birthday = request.body.birthday;
@@ -375,9 +375,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('user_credentials', AllowOwner, 'update-user-credential'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let password = request.body.password as string;
             let salt = Encryption.generateSalt();
             let hash = Encryption.hashing(password, salt);
@@ -400,9 +400,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let counts = await UserService.permissions.countPermissions(id);
 
             return response.status(200).json({type: 'permission', counts});
@@ -420,9 +420,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let authentication: Authentication = request.authentication;
             let {limit, offset} = Pagination.getData(request);
             let total = await UserService.permissions.countPermissions(id);
@@ -443,9 +443,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('user_permissions', 'add-user-permission'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let permission_id = BigInt(request.body.permission_id);
             let result = await UserService.permissions.addPermission(id, permission_id);
 
@@ -464,9 +464,9 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         Authenticated(),
         RequiredMiddleware('user_permissions', 'remove-user-permission'),
         async (request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('users', request.params.id as string);
             let permission_id = BigInt(request.body.permission_id);
             let result = await UserService.permissions.removePermission(id, permission_id);
 
