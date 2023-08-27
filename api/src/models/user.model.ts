@@ -63,7 +63,6 @@ export interface UserOptionTable {
     username_show_state: ShowStateOption;
     firstname_show_state: ShowStateOption;
     lastname_show_state: ShowStateOption;
-    description_show_state: ShowStateOption;
     birthday_show_state: ShowStateOption;
     gender_show_state: ShowStateOption;
     pronouns_show_state: ShowStateOption;

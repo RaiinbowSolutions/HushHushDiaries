@@ -21,7 +21,6 @@ const DefaultUserOption: Omit<CreateUserOption, 'user_id'> = {
     username_show_state: 'hidden',
     firstname_show_state: 'hidden',
     lastname_show_state: 'hidden',
-    description_show_state: 'hidden',
     birthday_show_state: 'hidden',
     gender_show_state: 'hidden',
     pronouns_show_state: 'hidden',
