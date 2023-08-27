@@ -59,4 +59,67 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
             }
         }
     );
+
+    api.post(Prefix + BaseURI, 
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;
+
+            try {
+
+                return response.status(201).json;
+            }
+            catch {
+                throw new NotFoundError('Permission not created');
+            }
+        }
+    );
+
+    api.patch(Prefix + BaseURI + '/[id]',
+        ValidateMiddleware('params', { 'id': 'string' }),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authencation;
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Permission not updated');
+            }
+        }
+    );
+
+    api.post(Prefix + BaseURI + '/deactivate/[id]',
+        ValidateMiddleware('params', { 'id': 'string' }),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Permission not deactivated');
+            }
+        }
+    );
+
+    api.delete(Prefix + BaseURI + '/[id]',
+        ValidateMiddleware('params', { 'id': 'string' }),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication; 
+
+            try {
+
+                return response.status(204).json;
+            }
+            catch {
+                throw new NotFoundError('Permission not deleted');
+            }
+        }
+    );
 }
