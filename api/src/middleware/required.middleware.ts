@@ -75,7 +75,7 @@ async function isOwner(as: Authentication['id'], referenceType: ReferenceType, r
 export const RequiredMiddleware = (referenceType: ReferenceType, ...permissions: (string | SpecialPermission)[]): Middleware => {
     return async (request, response, next) => {
         let authentication: Authentication = request.authentication;
-        let referenceId = Minify.decode(request.params.id as string);
+        let referenceId = Minify.decode(referenceType, request.params.id as string);
         let failed = true;
 
         if (permissions.includes(SpecialPermission.AllowOwner)) {

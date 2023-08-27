@@ -1,21 +1,24 @@
 import 'dotenv/config';
 import HashIdsContructor from 'hashids';
+import { ReferenceType } from './database';
 
 const Salt = process.env.HASH_ID_SALT || undefined;
 const MinLength = Number(process.env.HASH_ID_MIN_LENGTH) || 8;
 const Alphabet = process.env.HASH_ID_ALPHABET || undefined;
-const HashIds = new HashIdsContructor(Salt, MinLength, Alphabet);
 
-function decode(id: string): bigint {
-    return BigInt(HashIds.decode(id)[0]);
+function decode(referenceType: ReferenceType | '', id: string): bigint {
+    let hashIds = new HashIdsContructor(Salt + referenceType, MinLength, Alphabet);
+    return BigInt(hashIds.decode(id)[0]);
 }
 
-function encode(id: bigint): string {
-    return HashIds.encode(id);
+function encode(referenceType: ReferenceType | '', id: bigint): string {
+    let hashIds = new HashIdsContructor(Salt + referenceType, MinLength, Alphabet);
+    return hashIds.encode(id);
 }
 
-function validate(id: string): boolean {
-    let decode = HashIds.decode(id)[0];
+function validate(referenceType: ReferenceType | '', id: string): boolean {
+    let hashIds = new HashIdsContructor(Salt + referenceType, MinLength, Alphabet);
+    let decode = hashIds.decode(id)[0];
     if (decode === undefined) return false;
     else return true;
 }

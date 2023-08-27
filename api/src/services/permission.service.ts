@@ -105,7 +105,7 @@ async function filterPermissions(as: SelectUser['id'], permissions: SelectPermis
     return results;
 }
 async function filterPermission(as: SelectUser['id'], request: SelectPermission, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Permission> {
-    let id = Minify.encode(request.id);
+    let id = Minify.encode('permissions', request.id);
 
     return {
         ...request,

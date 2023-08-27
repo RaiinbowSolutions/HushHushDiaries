@@ -188,9 +188,9 @@ async function filterMessages(as: SelectUser['id'], messages: SelectMessage[], d
     return results;
 }
 async function filterMessage(as: SelectUser['id'], message: SelectMessage, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Message> {
-    let id = Minify.encode(message.id);
-    let sender_id = Minify.encode(message.sender_id);
-    let receiver_id = Minify.encode(message.receiver_id);
+    let id = Minify.encode('messages', message.id);
+    let sender_id = Minify.encode('users', message.sender_id);
+    let receiver_id = Minify.encode('users', message.receiver_id);
     let content = 'hidden';
 
     if (as == message.sender_id || as == message.receiver_id) content = message.content;

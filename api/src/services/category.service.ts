@@ -111,7 +111,7 @@ async function filterCategories(as: SelectUser['id'], categories: SelectCategory
     return results;
 }
 async function filterCategory(as: SelectUser['id'], category: SelectCategory, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Category> {
-    let id = Minify.encode(category.id);
+    let id = Minify.encode('categories', category.id);
 
     return {
         ...category,

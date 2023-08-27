@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema, ReferenceType } from "../utilities/database";
 import { SelectComment, CreateComment, UpdateComment, Comment } from "../models/comment.model";
 import { SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
@@ -145,9 +145,10 @@ async function filterComments(as: SelectUser['id'], comments: SelectComment[], d
     return results;
 }
 async function filterComment(as: SelectUser['id'], comment: SelectComment, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Comment> {
-    let id = Minify.encode(comment.id);
-    let author_id = Minify.encode(comment.author_id);
-    let refecence_id = Minify.encode(comment.refecence_id);
+    let id = Minify.encode('comments', comment.id);
+    let author_id = Minify.encode('users', comment.author_id);
+    let refecenceType: ReferenceType = comment.refecence_type === 'blog' ? 'blogs' : 'comments';
+    let refecence_id = Minify.encode(refecenceType, comment.refecence_id);
 
     return {
         ...comment,

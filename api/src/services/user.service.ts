@@ -415,7 +415,7 @@ async function filterUsers(as: SelectUser['id'], users: SelectUser[], database: 
 }
 async function filterUser(as: SelectUser['id'], user: SelectUser, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<User> {
     let option = await selectOption(user.id, database);
-    let id = Minify.encode(user.id);
+    let id = Minify.encode('users', user.id);
     let email = 'hidden';
     let username = 'anonym';
 
@@ -441,8 +441,8 @@ async function filterUserOptions(as: SelectUser['id'], userOptions: SelectUserOp
     return results;
 }
 async function filterUserOption(as: SelectUser['id'], userOption: SelectUserOption, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserOption> {
-    let id = Minify.encode(userOption.id);
-    let user_id = Minify.encode(userOption.user_id);
+    let id = Minify.encode('user_options', userOption.id);
+    let user_id = Minify.encode('users', userOption.user_id);
 
     return {
         ...userOption,
@@ -463,8 +463,8 @@ async function filterUserDetails(as: SelectUser['id'], userDetials: SelectUserDe
 }
 async function filterUserDetail(as: SelectUser['id'], userDetial: SelectUserDetail, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserDetail> {
     let option = await selectOption(userDetial.user_id, database);
-    let id = Minify.encode(userDetial.id);
-    let user_id = Minify.encode(userDetial.user_id);
+    let id = Minify.encode('user_details', userDetial.id);
+    let user_id = Minify.encode('users', userDetial.user_id);
     let firstname = 'hidden';
     let lastname = 'hidden';
     let birthday = 'hidden';
@@ -503,8 +503,8 @@ async function filterUserCredentials(as: SelectUser['id'], userCredentials: Sele
     return results;
 }
 async function filterUserCredential(as: SelectUser['id'], userCredential: SelectUserCredential, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UserCredential> {
-    let id = Minify.encode(userCredential.id);
-    let user_id = Minify.encode(userCredential.user_id);
+    let id = Minify.encode('user_credentials', userCredential.id);
+    let user_id = Minify.encode('users', userCredential.user_id);
     let password = 'hidden';
     let salt = 'hidden';
 

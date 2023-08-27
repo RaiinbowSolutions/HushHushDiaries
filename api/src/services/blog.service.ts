@@ -150,9 +150,9 @@ async function filterBlogs(as: SelectUser['id'], blogs: SelectBlog[], database: 
     return results;
 }
 async function filterBlog(as: SelectUser['id'], blog: SelectBlog, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Blog> {
-    let id = Minify.encode(blog.id);
-    let category_id = Minify.encode(blog.category_id);
-    let author_id = Minify.encode(blog.author_id);
+    let id = Minify.encode('blogs', blog.id);
+    let category_id = Minify.encode('categories', blog.category_id);
+    let author_id = Minify.encode('users', blog.author_id);
 
     return {
         ...blog,

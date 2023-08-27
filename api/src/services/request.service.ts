@@ -1,5 +1,5 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
+import { Database, DatabaseDateString, DatabaseSchema, ReferenceType } from "../utilities/database";
 import { CreateRequest, Request, SelectRequest, UpdateRequest } from "../models/request.model";
 import { SelectUser } from "../models/user.model";
 import { Minify } from '../utilities/minify';
@@ -110,9 +110,10 @@ async function filterRequests(as: SelectUser['id'], requests: SelectRequest[], d
     return results;
 }
 async function filterRequest(as: SelectUser['id'], request: SelectRequest, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<Request> {
-    let id = Minify.encode(request.id);
-    let reference_id = Minify.encode(request.reference_id);
-    let sender_id = Minify.encode(request.sender_id);
+    let id = Minify.encode('requests', request.id);
+    let referenceType: ReferenceType = request.reference_type === 'blog' ? 'blogs' : request.reference_type === 'comment' ? 'comments' : 'users';
+    let reference_id = Minify.encode(referenceType, request.reference_id);
+    let sender_id = Minify.encode('users', request.sender_id);
 
     return {
         ...request,
