@@ -1,7 +1,7 @@
 import { Middleware } from "lambda-api";
 import { BadRequestError } from "./error.middleware";
 
-type SupportedType = 'string' | 'number' | 'bigint' | 'boolean' | 'undefined' | 'null';
+type SupportedType = 'string' | 'number' | 'bigint' | 'boolean' | 'date' | 'undefined' | 'null';
 type SpecifiedType = {
     type: SupportedType,
     required: boolean,
@@ -19,6 +19,7 @@ function valueConvertable(from: any, to: SupportedType) {
         case 'number': convertable = !Number.isNaN(Number(from)); break;
         case 'bigint': convertable = !Number.isNaN(Number(from)); break;
         case 'boolean': convertable = Boolean(from); break;
+        case 'date': convertable = !isNaN((new Date(from)).getTime()); break;
         case 'null': convertable = from === 'null'; break;
         case "undefined": convertable = from === undefined || from === 'undefined' ? true : false;
     }
