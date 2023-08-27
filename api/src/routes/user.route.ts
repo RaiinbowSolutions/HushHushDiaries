@@ -371,17 +371,18 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
      */
     api.patch(Prefix + BaseURI + '/credential/:id',
         ValidateMiddleware('params', { id: 'string' }),
-        ValidateMiddleware('body', { password: { type: 'string', required: false} }),
+        ValidateMiddleware('body', { password: 'string' }),
         Authenticated(),
         RequiredMiddleware('user_credentials', AllowOwner, 'update-user-credential'),
         async (request: Request, response: Response) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
             let id = Minify.decode(request.params.id as string);
-            let password = request.body.password;
+            let password = request.body.password as string;
             let salt = Encryption.generateSalt();
+            let hash = Encryption.hashing(password, salt);
             let result = await UserService.credentials.updateCredential(id, {
-                password,
+                password: hash,
                 salt,
             });
 
@@ -445,7 +446,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
             let id = Minify.decode(request.params.id as string);
-            let permission_id = request.body.permission_id as bigint;
+            let permission_id = BigInt(request.body.permission_id);
             let result = await UserService.permissions.addPermission(id, permission_id);
 
             return response.status(204).json({
@@ -466,7 +467,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             if (!Minify.validate(request.params.id as string)) throw new NotFoundError('User not found');
 
             let id = Minify.decode(request.params.id as string);
-            let permission_id = request.body.permission_id as bigint;
+            let permission_id = BigInt(request.body.permission_id);
             let result = await UserService.permissions.removePermission(id, permission_id);
 
             return response.status(204).json({
