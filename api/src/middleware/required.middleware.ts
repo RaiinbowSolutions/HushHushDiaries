@@ -17,7 +17,7 @@ export enum SpecialPermission {
 function hasRequiredPermissions(userPermissions: string[], permissions: (string | SpecialPermission)[]) {
     for (let permission of permissions) {
         if (permission == SpecialPermission.AllowOwner) continue;
-        if (!(permission in userPermissions)) return false;
+        if (!userPermissions.includes(permission)) return false;
     }
 
     return true;
@@ -78,7 +78,7 @@ export const RequiredMiddleware = (referenceType: ReferenceType, ...permissions:
         let referenceId = Minify.decode(request.params.id as string);
         let failed = true;
 
-        if (SpecialPermission.AllowOwner in permissions) {
+        if (permissions.includes(SpecialPermission.AllowOwner)) {
             let owner = await isOwner(authentication.id, referenceType, referenceId);
             if (owner) failed = false; 
         }
