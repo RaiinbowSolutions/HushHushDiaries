@@ -6,6 +6,7 @@ import { ValidateMiddleware } from "../middleware/validate.middleware";
 import { Pagination } from "../utilities/pagination";
 import { Minify } from "../utilities/minify";
 import { NotFoundError } from "../middleware/error.middleware";
+import { LikeService } from "../services/like.service";
 
 export const CommentRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix || '';
@@ -207,9 +208,11 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
         ValidateMiddleware('params', {id: 'string'}),
         Authenticated(),
         async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;
             if (!Minify.validate('comments', request.params.id as string)) throw new NotFoundError('Comment not found');
 
             let id = Minify.decode('comments', request.params.id as string);
+            let result = await LikeService.insert(authentication.id, 'comment', id);
 
             return response.status(204).json({
                 commentLiked: true, 
@@ -227,9 +230,11 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
             if (!Minify.validate('comments', request.params.id as string)) throw new NotFoundError('Comment not found');
 
             let id = Minify.decode('comments', request.params.id as string);
+            let result = await LikeService.delete(id);
 
             return response.status(204).json({
-                commentUnliked: true, 
+                commentUnliked: true,
+                commentUnliked_rows: result.numDeletedRows, 
             });
         }
     );
