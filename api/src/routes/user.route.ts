@@ -126,7 +126,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             anonym: { type: 'boolean', required: false },
         }),
         Authenticated(),
-        RequiredMiddleware('users', AllowOwner, 'update-user'),
+        RequiredMiddleware('users', 'users', AllowOwner, 'update-user'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -149,7 +149,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
                 anonym,
             });
 
-            return response.status(200).json({
+            return response.status(204).json({
                 updated: true,
                 updated_rows: '' + result.numUpdatedRows,
             });
@@ -162,7 +162,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.delete(Prefix + BaseURI + '/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
-        RequiredMiddleware('users', 'delete-user'),
+        RequiredMiddleware('users', 'users', 'delete-user'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -182,7 +182,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.post(Prefix + BaseURI + '/deactivate/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
-        RequiredMiddleware('users', AllowOwner, 'deactivate-user'),
+        RequiredMiddleware('users', 'users', AllowOwner, 'deactivate-user'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -202,7 +202,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.post(Prefix + BaseURI + '/ban/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
-        RequiredMiddleware('users', 'ban-user'),
+        RequiredMiddleware('users', 'users', 'ban-user'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -222,7 +222,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     api.post(Prefix + BaseURI + '/validate/:id',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
-        RequiredMiddleware('users', AllowOwner, 'validate-user'),
+        RequiredMiddleware('users', 'users', AllowOwner, 'validate-user'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -272,7 +272,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             profile_description_show_state: { type: 'string', required: false },
         }),
         Authenticated(),
-        RequiredMiddleware('user_options', AllowOwner, 'update-user-option'),
+        RequiredMiddleware('users', 'user_options', AllowOwner, 'update-user-option'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -339,7 +339,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
             profile_description: { type: 'string', required: false },
         }),
         Authenticated(),
-        RequiredMiddleware('user_details', AllowOwner, 'update-user-detail'),
+        RequiredMiddleware('users', 'user_details', AllowOwner, 'update-user-detail'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -373,7 +373,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { password: 'string' }),
         Authenticated(),
-        RequiredMiddleware('user_credentials', AllowOwner, 'update-user-credential'),
+        RequiredMiddleware('users', 'user_credentials', AllowOwner, 'update-user-credential'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -441,7 +441,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { permission_id: 'bigint' }),
         Authenticated(),
-        RequiredMiddleware('user_permissions', 'add-user-permission'),
+        RequiredMiddleware('users', 'user_permissions', 'add-user-permission'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
@@ -462,7 +462,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { permission_id: 'bigint' }),
         Authenticated(),
-        RequiredMiddleware('user_permissions', 'remove-user-permission'),
+        RequiredMiddleware('users', 'user_permissions', 'remove-user-permission'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
 
