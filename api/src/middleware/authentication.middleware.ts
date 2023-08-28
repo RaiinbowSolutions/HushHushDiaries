@@ -3,7 +3,7 @@ import { UserService } from '../services/user.service';
 import { Token } from "../utilities/token";
 import { UnauthorizedError } from "./error.middleware";
 
-
+export type AuthenticationType = "Bearer" | "Basic" | "OAuth" | "Digest" | "none";
 export type Authentication = {
     authenticated: boolean,
     id: bigint,
@@ -24,7 +24,7 @@ export const AuthenticationMiddleware = (): Middleware => {
         };
 
         if ('token' in request.cookies) {
-            auth.type = 'Bearer';
+            auth.type = request.cookies.token_type as AuthenticationType || 'Bearer';
             auth.value = request.cookies.token;
         }
 

@@ -1,10 +1,19 @@
-import { API, RegisterOptions, Request, Response } from 'lambda-api';
+import { API, RegisterOptions, Request, Response, CookieOptions } from 'lambda-api';
 import { ValidateMiddleware } from '../middleware/validate.middleware';
 import { Validation } from '../utilities/validation';
 import { BadRequestError } from '../middleware/error.middleware';
 import { UserService } from '../services/user.service';
 import { Token } from '../utilities/token';
 import { Encryption } from '../utilities/encryption';
+
+const CookieOption = (expires: Date): CookieOptions => {
+    return {
+        httpOnly: true,
+        expires: addMinute(expires, 10),
+        secure: true,
+        sameSite: 'Strict',
+    }
+}
 
 function addMinute(date: Date, minutes: number) {
     return new Date(date.getTime() + minutes * 60000);
@@ -36,14 +45,13 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
             });
 
             return response
-            .cookie('token', token, {
-                httpOnly: true,
-                expires: addMinute(new Date(), 10),
-                secure: true,
-                sameSite: 'Strict',
-            })
+            .cookie('token_type', 'Bearer', CookieOption(new Date()))
+            .cookie('token', token, CookieOption(new Date()))
             .status(200)
-            .json(token);
+            .json({
+                type: 'Bearer',
+                token
+            });
         }
     );
 }
