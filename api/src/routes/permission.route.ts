@@ -50,14 +50,14 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
     /**
      * @alias PermissionRoute_GetPermission
      */
-    api.get(Prefix + BaseURI + '/[id]',
+    api.get(Prefix + BaseURI + '/:[id]',
         ValidateMiddleware('params', { 'id': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
 
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
-            let id = Minify.decode(request.params.id as string);
+            if (!Minify.validate('permissions', request.params.id as string)) throw new NotFoundError('Permission not found');
+            let id = Minify.decode('permissions', request.params.id as string);
             let permission = await PermissionService.select(id);
             let filtered = await PermissionService.filters.permission(authentication.id, permission);
 
@@ -77,7 +77,7 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
             let name = request.body.name as string;
             let description = request.body.description as string;
             let result = await PermissionService.insert(name, description);
-            let id = Minify.encode(result.insertId as bigint);
+            let id = Minify.encode('permissions', result.insertId as bigint);
 
             return response.status(201).json({
                 created: true,
@@ -90,16 +90,16 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
     /**
      * @alias PermissionRoute_UpdatePermission
      */
-    api.patch(Prefix + BaseURI + '/[id]',
+    api.patch(Prefix + BaseURI + '/:[id]',
         ValidateMiddleware('params', {id : 'string'}),
         ValidateMiddleware('body', {
             'name': 'string',
         }),
         Authenticated(),
         async(request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
+            if (!Minify.validate('permissions', request.params.id as string)) throw new NotFoundError('Permission not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('permissions', request.params.id as string);
             let name = request.body.name as string ; 
             let description = request.body.description as string; 
 
@@ -118,13 +118,13 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
     /**
      * @alias PermissionRoute_DeactivatePermission
      */
-    api.post(Prefix + BaseURI + '/deactivate/[id]',
+    api.post(Prefix + BaseURI + '/deactivate/:[id]',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async(request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
+            if (!Minify.validate('permissions', request.params.id as string)) throw new NotFoundError('Permission not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('permissions', request.params.id as string);
             let result = await PermissionService.markAsDeleted(id);
 
             return response.status(204).json({
@@ -137,13 +137,13 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
     /**
      * @alias PermissionRoute_DeletePermission
      */
-    api.delete(Prefix + BaseURI + '/[id]',
+    api.delete(Prefix + BaseURI + '/:[id]',
         ValidateMiddleware('params', {id: 'string'}),
         Authenticated(),
         async(request: Request, response: Response) => {
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Permission not found');
+            if (!Minify.validate('permissions', request.params.id as string)) throw new NotFoundError('Permission not found');
 
-            let id = Minify.decode(request.params.id as string);
+            let id = Minify.decode('permissions', request.params.id as string);
             let result = await PermissionService.delete(id);
 
             return response.status(204).json({
