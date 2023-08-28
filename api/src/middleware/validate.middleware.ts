@@ -18,7 +18,7 @@ function valueConvertable(from: any, to: SupportedType) {
         case 'string': convertable = typeof String(from) === 'string'; break;
         case 'number': convertable = !Number.isNaN(Number(from)); break;
         case 'bigint': convertable = !Number.isNaN(Number(from)); break;
-        case 'boolean': convertable = Boolean(from); break;
+        case 'boolean': convertable = from === false || from === true || from === 0 || from === 1 || from === 'false' || from === 'true'; break;
         case 'date': convertable = !isNaN((new Date(from)).getTime()); break;
         case 'null': convertable = from === 'null'; break;
         case "undefined": convertable = from === undefined || from === 'undefined' ? true : false;
@@ -44,6 +44,7 @@ function getKeyProperties(value: SupportedType | SpecifiedType) {
 
 export const ValidateMiddleware = (on: 'body' | 'params' | 'query', schema: ValidateSchema): Middleware => {
     return async (request, response, next) => {
+        let logged: {key: string, value: unknown}[] = [];
         let data = request.body;
         let keys = Object.keys(schema);
         let failed = false;
@@ -57,10 +58,12 @@ export const ValidateMiddleware = (on: 'body' | 'params' | 'query', schema: Vali
 
             if (value === undefined && required) failed = true;
             if (!valueConvertable(value, type) && value !== undefined) failed = true;
+            logged.push({key, value});
 
             if (failed) break;
         }
 
+        console.info(`${on}:`, logged);
         if (failed) throw new BadRequestError(`Given ${on} failed validation requirements`);
         return next();
     }
