@@ -6,6 +6,7 @@ import { ValidateMiddleware } from "../middleware/validate.middleware";
 import { Pagination } from "../utilities/pagination";
 import { Minify } from "../utilities/minify";
 import { NotFoundError } from "../middleware/error.middleware";
+import { LikeService } from "../services/like.service";
 
 export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix || '';
@@ -215,22 +216,27 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
             let id = Minify.decode('blogs', request.params.id as string);
             let countLikes = await BlogService.countLikes(id);
 
-            return response.status(200).json({
-                countLikes: true,
-            });
+            return response.status(200).json(countLikes);
         }
     );
 
     /**
      * @alias BlogRoute_LikeOnBlog
      */
-    api.get(Prefix + BaseURI + '/likes/count/:[id]',
+    api.post(Prefix + BaseURI + '/likes/count/:[id]',
         ValidateMiddleware('params', {id: 'string'}),
         Authenticated(),
         async(request: Request, response: Response) => {
+            let authentication: Authentication = request.authentication;
             if (!Minify.validate('blogs', request.params.id as string)) throw new NotFoundError('Blog not found');
             
             let id = Minify.decode('blogs', request.params.id as string);
+            let result = await LikeService.insert(authentication.id, 'blog', id);
+
+            return response.status(204).json({
+                blogLiked: true, 
+                id, 
+            });
         }
     );
 
@@ -244,6 +250,12 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
             if (!Minify.validate('blogs', request.params.id as string)) throw new NotFoundError('Blog not found');
          
             let id = Minify.decode('blogs', request.params.id as string);
+            let result = await LikeService.delete(id);
+
+            return response.status(204).json({
+                blogUnliked: true, 
+                blogUnliked_rows: result.numDeletedRows,
+            });
         }
     );
 

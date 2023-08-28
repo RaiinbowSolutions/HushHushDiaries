@@ -61,4 +61,100 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
             return response.status(200).json(filtered);
         }
     );
+
+    /**
+     * @alias MessageRoute_CreateMessage
+     */
+    api.post(Prefix + BaseURI,
+        ValidateMiddleware('body', {
+            'message': 'string'
+        }),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            let message = request.body.message as string;
+            let id = Minify.encode('messages', request.insertId as bigint);
+
+            return response.status(201).json({
+                created: true, 
+                message,
+                id, 
+                path: `${request.path}/${id}`
+            });
+        }
+    );
+
+    /**
+     * @alias MessageRoute_UpdateMessage
+     */
+    api.patch(Prefix + BaseURI + '/:[id]',
+        ValidateMiddleware('params', {id: 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
+
+            let id = Minify.decode('messages', request.params.id as string);
+            let message = request.body.content as string;
+
+            return response.status(200).json({
+
+            });
+        }
+    );
+
+    /**
+     * @alias MessageRoute_DeactivateMessage
+     */
+    api.post(Prefix + BaseURI + '/deactivate/:[id]',
+        ValidateMiddleware('params', {id: 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
+
+            let id = Minify.decode('messages', request.params.id as string);
+            let result = await MessageService.markAsDeleted(id);
+
+            return response.status(204).json({
+                deactivated: true, 
+                deactivated_rows: result.numUpdatedRows,
+            });
+        }
+    );
+
+    /**
+     * @alias MessageRoute_DeleteMessage
+     */
+    api.delete(Prefix + BaseURI + '/:[id]',
+        ValidateMiddleware('params', {id: 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
+
+            let id = Minify.decode('messages', request.params.id as string);
+            let result = await MessageService.delete(id);
+
+            return response.status(204).json({
+                deleted: true, 
+                deleted_rows: result.numDeletedRows,
+            });
+        }
+    );
+
+    /**
+     * @alias MessageRoute_ReviewMessage
+     */
+    api.post(Prefix + BaseURI + '/approve/:[id]',
+        ValidateMiddleware('params', {id: 'string'}),
+        Authenticated(),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
+
+            let id = Minify.decode('messages', request.params.id as string);
+            let result = await MessageService.markAsReviewed(id);
+
+            return response.status(204).json({
+                reviewed: true, 
+                reviewed_rows: result.numUpdatedRows,
+            });
+        }
+    );
 }
