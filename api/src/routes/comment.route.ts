@@ -11,14 +11,21 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     const Prefix = options?.prefix || '';
     const BaseURI = '/comments';
 
+    /**
+     * @alias CommentRoute_GetCounts
+     */
     api.get(Prefix + BaseURI + '/comments',
         Authenticated(),
         async (request: Request, response: Response) => {
             let counts = await CommentService.counts();
+
             return response.status(200).json({type: 'comments', counts});
         }
     );
 
+    /**
+     * @alias CommentRoute_GetComments
+     */
     api.get(Prefix + BaseURI,
         ValidateMiddleware('query', {
             'page': { type: 'number', required: false },
@@ -28,184 +35,36 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
             let {limit, offset} = Pagination.getData(request);
+            let total = await CommentService.counts();
+            let comments = await CommentService.selects(offset, limit);
+            let filtered = await CommentService.filters.comments(authentication.id, comments);
 
-            try {
-                let total = await CommentService.counts();
-                let comments = await CommentService.selects(offset, limit);
-                let filtered = await CommentService.filters.comments(authentication.id, comments);
-    
-                let pagination = Pagination.create(request, filtered, total);
-    
-                return response.status(200).json(pagination);
-            } catch (error) {}
+            let pagination = Pagination.create(request, filtered, total);
+
+            return response.status(200).json(pagination);
         }
     );
 
-    api.get(Prefix + BaseURI + '/[id]',
+    /**
+     * @alias CommentRoute_GetComment
+     */
+    api.get(Prefix + BaseURI + '/:[id]',
         ValidateMiddleware('params', { 'id': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
 
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
+            if (!Minify.validate('comments', request.params.id as string)) throw new NotFoundError('Comment not found');
+            let id = Minify.decode('comments', request.params.id as string);
+            let comment = await CommentService.select(id);
+            let filtered = await CommentService.filters.comment(authentication.id, comment);
 
-            try {
-                let comment = await CommentService.select(id);
-                let filtered = await CommentService.filters.comment(authentication.id, comment);
-
-                return response.status(200).json(filtered);
-            } catch (error) {
-                throw new NotFoundError('Comment not found');
-            }
+            return response.status(200).json(filtered);
         }
     );
-
-    api.post(Prefix + BaseURI, 
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-
-            try {
-
-                return response.status(201).json;
-            }
-            catch {
-                throw new NotFoundError('Comment not created');
-            }
-        }
-    );
-
-    api.patch(Prefix + BaseURI + '/[id]',
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Comment not updated');
-            }
-        }
-    );
-
-    api.post(Prefix + BaseURI + '/deactivate/[id]', 
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authencation: Authentication = request.authentication;
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Comment not deactivated');
-            }
-        }
-    );
-
-    api.post(Prefix + BaseURI + '/approve/[id]',
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async(request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(204).json; 
-            }
-            catch {
-                throw new NotFoundError('Comment not approved');
-            }
-        }
-    );
-
-    api.post(Prefix + BaseURI + '/review/[id]',
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async(request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication; 
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Comment review not approved')
-            }
-        }
-    );
-
-    api.get(Prefix + BaseURI + '/likes/count/[id]',
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(200).json;
-            }
-            catch {
-                throw new NotFoundError('Likecount not found');
-            }
-        }
-    );
-
-    api.post(Prefix + BaseURI + '/likes/[id]',
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async(request: Request, response: Response) => {
-            let authentication: Authentication = request.authencation;
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Comment like not executed');
-            }
-        }
-    );
-
-    api.delete(Prefix + BaseURI + '/likes/[id]',
-        ValidateMiddleware('params', {'id': 'string'}),
-        Authenticated(),
-        async(request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication; 
-
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Comment not found');
-            let id = Minify.decode(request.params.id as string);
-
-            try {
-
-                return response.status(204).json; 
-            }
-            catch {
-                throw new NotFoundError('Comment like not removed');
-            }
-        }
-    );
+    
+    /**
+     * @alias CommentRoute_CreateComment
+     */
+    
 }
