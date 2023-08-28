@@ -195,9 +195,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
             let id = Minify.decode('comments', request.params.id as string);
             let countLikes = await CommentService.countLikes(id);
 
-            return response.status(200).json({
-                countLikes: true,
-            });
+            return response.status(200).json(countLikes);
         }
     );
 
