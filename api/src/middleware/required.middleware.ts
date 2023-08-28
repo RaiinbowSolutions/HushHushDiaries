@@ -12,6 +12,7 @@ import { Minify } from "../utilities/minify";
 
 export enum SpecialPermission {
     AllowOwner = 'allow-owner',
+    AllowAdmin = 'the-lord-of-the-rings',
 }
 
 function hasRequiredPermissions(userPermissions: string[], permissions: (string | SpecialPermission)[]) {
@@ -23,48 +24,48 @@ function hasRequiredPermissions(userPermissions: string[], permissions: (string 
     return true;
 }
 
-async function isOwner(as: Authentication['id'], referenceType: ReferenceType, referenceId: bigint) {
-    if (referenceType == 'users') {
+async function isOwner(as: Authentication['id'], referenceTableType: ReferenceType, referenceId: bigint) {
+    if (referenceTableType == 'users') {
         let user = await UserService.select(referenceId);
         return as == user.id;
     }
 
-    if (referenceType == 'user_options') {
+    if (referenceTableType == 'user_options') {
         let option = await UserService.options.selectOption(referenceId);
         return as == option.user_id;
     }
 
-    if (referenceType == 'user_details') {
+    if (referenceTableType == 'user_details') {
         let detail = await UserService.details.selectDetail(referenceId);
         return as == detail.user_id;
     }
 
-    if (referenceType == 'user_credentials') {
+    if (referenceTableType == 'user_credentials') {
         let credential = await UserService.credentials.selectCredential(referenceId);
         return as == credential.user_id;
     }
 
-    if (referenceType == 'requests') {
+    if (referenceTableType == 'requests') {
         let request = await RequestService.select(referenceId);
         return as == request.sender_id;
     }
 
-    if (referenceType == 'messages') {
+    if (referenceTableType == 'messages') {
         let message = await MessageService.select(referenceId);
         return as == message.sender_id || as == message.receiver_id;
     }
 
-    if (referenceType == 'likes') {
+    if (referenceTableType == 'likes') {
         let like = await LikeService.select(referenceId);
         return as == like.user_id;
     }
 
-    if (referenceType == 'comments') {
+    if (referenceTableType == 'comments') {
         let comment = await CommentService.select(referenceId);
         return as == comment.author_id;
     }
 
-    if (referenceType == 'blogs') {
+    if (referenceTableType == 'blogs') {
         let blog = await BlogService.select(referenceId);
         return as == blog.author_id;
     }
@@ -72,14 +73,16 @@ async function isOwner(as: Authentication['id'], referenceType: ReferenceType, r
     return false;
 }
 
-export const RequiredMiddleware = (referenceType: ReferenceType, ...permissions: (string | SpecialPermission)[]): Middleware => {
+export const RequiredMiddleware = (referenceType: ReferenceType, referenceTableType: ReferenceType, ...permissions: (string | SpecialPermission)[]): Middleware => {
     return async (request, response, next) => {
         let authentication: Authentication = request.authentication;
         let referenceId = Minify.decode(referenceType, request.params.id as string);
         let failed = true;
 
+        if (authentication.permissions.includes(SpecialPermission.AllowAdmin)) return next();
+
         if (permissions.includes(SpecialPermission.AllowOwner)) {
-            let owner = await isOwner(authentication.id, referenceType, referenceId);
+            let owner = await isOwner(authentication.id, referenceTableType, referenceId);
             if (owner) failed = false; 
         }
 
