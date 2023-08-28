@@ -4,14 +4,12 @@ import { UnauthorizedError } from "./error.middleware";
 
 export const AuthenticatedMiddleware = (): Middleware => {
     return async (request, response, next) => {
-        let failed = true;
+        let authentication: Authentication = request.authentication;
 
-        if ('authentication' in request) {
-            let authentication: Authentication = request.authentication;
-            if (authentication.authenticated) failed = false;
-        }
+        if (!authentication.authenticated) throw new UnauthorizedError('Given URI require an authenticated connection');
+        if (authentication.banned) throw new UnauthorizedError('This user is banned');
+        if (authentication.deleted) throw new UnauthorizedError('This user is deleted');
 
-        if (failed) throw new UnauthorizedError('Given URI require an authenticated connection');
         return next();
     }
 };
