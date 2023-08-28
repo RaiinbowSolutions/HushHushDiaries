@@ -12,6 +12,9 @@ export const RequestRoute = (api: API, options: RegisterOptions | undefined) => 
     const Prefix = options?.prefix || '';
     const BaseURI = '/requests';
 
+    /**
+     * @alias RequestRoute_GetCounts
+     */
     api.get(Prefix + BaseURI + '/counts', 
         Authenticated(), 
         async (request: Request, response: Response) => {
@@ -20,6 +23,9 @@ export const RequestRoute = (api: API, options: RegisterOptions | undefined) => 
         }
     );
 
+    /**
+     * @alias RequestRoute_GetRequests
+     */
     api.get(Prefix + BaseURI,
         ValidateMiddleware('query', {
             'page': { type: 'number', required: false },
@@ -29,111 +35,136 @@ export const RequestRoute = (api: API, options: RegisterOptions | undefined) => 
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
             let {limit, offset} = Pagination.getData(request);
+            let total = await RequestService.counts();
+            let requests = await RequestService.selects(offset, limit);
+            let filtered = await RequestService.filters.requests(authentication.id, requests);
 
-            try {
-                let total = await RequestService.counts();
-                let requests = await RequestService.selects(offset, limit);
-                let filtered = await RequestService.filters.requests(authentication.id, requests);
-    
-                let pagination = Pagination.create(request, filtered, total);
-    
-                return response.status(200).json(pagination);
-            } catch (error) {}
+            let pagination = Pagination.create(request, filtered, total);
+
+            return response.status(200).json(pagination);
         }
     );
 
-    api.get(Prefix + BaseURI + '/[id]',
+    /**
+     * @alias RequestRoute_GetRequest
+     */
+    api.get(Prefix + BaseURI + '/:[id]',
         ValidateMiddleware('params', { 'id': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
 
-            if (!Minify.validate(request.params.id as string)) throw new NotFoundError('Request not found');
-            let id = Minify.decode(request.params.id as string);
+            if (!Minify.validate('requests', request.params.id as string)) throw new NotFoundError('Request not found');
+            
+            let id = Minify.decode('requests', request.params.id as string);
+            let reQuest = await RequestService.select(id);
+            let filtered = await RequestService.filters.request(authentication.id, reQuest);
 
-            try {
-                let request = await RequestService.select(id);
-                let filtered = await RequestService.filters.request(authentication.id, request);
-
-                return response.status(200).json(filtered);
-            } catch (error) {
-                throw new NotFoundError('Request not found');
-            }
+            return response.status(200).json(filtered);
         }
     );
 
+    /**
+     * @alias RequestRoute_CreateRequest
+     */
     api.post(Prefix + BaseURI,
+        ValidateMiddleware('body', {
+            'content': 'string',
+        }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-            
-            try {
-                
-                return response.status(201).json;
-            }
-            catch {
-                throw new NotFoundError('Request not created');
-            }
+            let content = request.body.content as string; 
+            let result = '';
+            let id = Minify.encode('requests', request.insertId as bigint);
+
+            return response.status(201).json({
+                created: true, 
+                id, 
+                path: `${request.path}/${id}`,
+            });
         }
     );
 
-    api.patch(Prefix + BaseURI + '/[id]',
+    /**
+     * @alias RequestRoute_UpdateRequest
+     */
+    api.patch(Prefix + BaseURI + '/:[id]',
+        ValidateMiddleware('params', { 'id': 'string' }),
+        ValidateMiddleware('body', {
+            'content': 'string',
+        }),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            if (!Minify.validate('requests', request.params.id as string)) throw new NotFoundError('Request not found');
+
+            let id = Minify.decode('requests', request.params.id as string);
+            let content = request.body.content as string;
+            
+            let result = await RequestService.update(id, {
+                content,
+            });
+
+            return response.status(200).json({
+                updated: true, 
+                updated_rows: result.numUpdatedRows,
+            });
+        }
+    );
+
+    /**
+     * @alias RequestRoute_DeactivateRequest
+     */
+    api.post(Prefix + BaseURI + 'deactivate/:[id]',
         ValidateMiddleware('params', { 'id': 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
+            if (!Minify.validate('requests', request.params.id as string)) throw new NotFoundError('Request not found');
+
+            let id = Minify.decode('requests', request.params.id as string);
+            let result = await RequestService.markAsDeleted(id);
+
+            return response.status(204).json({
+                deactivated: true, 
+                deactivated_rows: result.numUpdatedRows,
+            });
+        }
+    );
+
+    /**
+     * @alias RequestRoute_DeleteRequest
+     */
+    api.delete(Prefix + BaseURI + '/:[id]',
+        ValidateMiddleware('params', { 'id': 'string'}),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            if (!Minify.validate('requests', request.params.id as string)) throw new NotFoundError('Request not found');
+
+            let id = Minify.decode('requests', request.params.id as string);
+            let result = await RequestService.delete(id);
+
+            return response.status(204).json({
+                deleted: true, 
+                deleted_rows: result.numDeletedRows,
+            });
+        }
+    );
+
+    /**
+     * @alias RequestRoute_ReviewRequest
+     */
+    api.post(Prefix + BaseURI + '/review/:[id]',
+        ValidateMiddleware('params', { 'id': 'string'}),
+        Authenticated(),
+        async (request: Request, response: Response) => {
+            if (!Minify.validate('requests', request.params.id as string)) throw new NotFoundError('Request not found');
             
-            try {
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Request not updated');
-            }
-        }
-    );
-
-    api.post(Prefix + BaseURI + 'deactivate/[id]',
-        ValidateMiddleware('params', { 'id': 'string' }),
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-
-            try {
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Request not deactivated');
-            }
-        }
-    );
-
-    api.delete(Prefix + BaseURI + '/[id]',
-        ValidateMiddleware('params', { 'id': 'string'}),
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authencation;
-
-            try {
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Request not deleted');
-            }
-        }
-    );
-
-    api.post(Prefix + BaseURI + '/review/[id]',
-        ValidateMiddleware('params', { 'id': 'string'}),
-        Authenticated(),
-        async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authencation;
-
-            try {
-                return response.status(204).json;
-            }
-            catch {
-                throw new NotFoundError('Request not reviewed');
-            }
+            let id = Minify.decode('requests', request.params.id as string);
+            let result = await RequestService.markAsReviewed(id);
+            
+            return response.status(204).json({
+                reviewed: true, 
+                reviewed_rows: result.numUpdatedRows,
+            });
         }
     );
 }
