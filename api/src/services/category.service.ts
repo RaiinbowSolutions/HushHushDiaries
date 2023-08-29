@@ -1,8 +1,8 @@
 import { SelectCategory, CreateCategory, UpdateCategory, Category } from '../models/category.model';
 import { SelectUser } from '../models/user.model';
 import { Minify } from '../utilities/minify';
-import { Database, DatabaseDateString, DatabaseSchema } from './../utilities/database';
-import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
+import { Database, DatabaseDateString, DatabaseSchema, WhereExpressionFactory } from './../utilities/database';
+import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult } from "kysely";
 
 ///////////////////////////////////////////////////////
 /// Default Templates                               ///

@@ -1,5 +1,5 @@
-import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult, WhereExpressionFactory } from "kysely";
-import { Database, DatabaseDateString, DatabaseSchema } from "../utilities/database";
+import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult } from "kysely";
+import { Database, DatabaseDateString, DatabaseSchema, WhereExpressionFactory } from "../utilities/database";
 import { CreatePermission, Permission, SelectPermission, UpdatePermission } from "../models/permission.model";
 import { SelectUser } from "../models/user.model";
 import { Minify } from '../utilities/minify';

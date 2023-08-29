@@ -1,4 +1,4 @@
-import { Kysely } from "kysely";
+import { Expression, ExpressionBuilder, Kysely, SqlBool } from "kysely";
 import { PlanetScaleDialect } from "kysely-planetscale";
 import { BlogTable } from "../models/blog.model";
 import { CategoryTable } from "../models/category.model";
@@ -10,7 +10,7 @@ import { RequestTable } from "../models/request.model";
 import { UserCredentialTable, UserDetailTable, UserOptionTable, UserPermissionTable, UserTable } from "../models/user.model";
 
 export type ReferenceType = 'blogs' | 'categories' | 'comments' | 'likes' | 'messages' | 'permissions' | 'requests' | 'users' | 'user_credentials' | 'user_details' | 'user_options' | 'user_permissions';
-
+export type WhereExpressionFactory<DB, TB extends keyof DB> = (eb: ExpressionBuilder<DB, TB>) => Expression<SqlBool>;
 export interface DatabaseSchema {
     blogs: BlogTable,
     categories: CategoryTable,
