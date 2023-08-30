@@ -6,6 +6,10 @@ import { ValidateMiddleware } from "../middleware/validate.middleware";
 import { Pagination } from "../utilities/pagination";
 import { Minify } from "../utilities/minify";
 import { NotFoundError } from "../middleware/error.middleware";
+import { CreateMessage } from "../models/message.model";
+import { RequiredMiddleware, SpecialPermission } from "../middleware/required.middleware";
+
+const AllowOwner = SpecialPermission.AllowOwner;
 
 export const MessageRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix || '';
@@ -16,8 +20,10 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
      */
     api.get(Prefix + BaseURI + '/counts', 
         Authenticated(),
+        RequiredMiddleware('messages', AllowOwner, 'view-message'),
         async (request: Request, response: Response) => {
             let counts = await MessageService.counts();
+
             return response.status(200).json({type: 'message', counts});
         }
     );
@@ -27,17 +33,17 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
      */
     api.get(Prefix + BaseURI,
         ValidateMiddleware('query', {
-            'page': { type: 'number', required: false },
-            'limit': { type: 'number', required: false },
+            page: { type: 'number', required: false },
+            limit: { type: 'number', required: false },
         }),
         Authenticated(),
+        RequiredMiddleware('messages', AllowOwner, 'view-message'),
         async (request: Request, response: Response) => {
             let authentication: Authentication = request.authentication;
             let {limit, offset} = Pagination.getData(request);
             let total = await MessageService.counts();
             let messages = await MessageService.selects(offset, limit);
             let filtered = await MessageService.filters.messages(authentication.id, messages);
-
             let pagination = Pagination.create(request, filtered, total);
 
             return response.status(200).json(pagination);
@@ -47,14 +53,15 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_GetMessage
      */
-    api.get(Prefix + BaseURI + '/:[id]',
-        ValidateMiddleware('params', { 'id': 'string' }),
+    api.get(Prefix + BaseURI + '/:id',
+        ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
+        RequiredMiddleware('messages', AllowOwner, 'view-message'),
         async (request: Request, response: Response) => {
-            let authentication: Authentication = request.authentication;
-
             if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
+
             let id = Minify.decode('messages', request.params.id as string);
+            let authentication: Authentication = request.authentication;
             let message = await MessageService.select(id);
             let filtered = await MessageService.filters.message(authentication.id, message);
 
@@ -67,16 +74,21 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
      */
     api.post(Prefix + BaseURI,
         ValidateMiddleware('body', {
-            'message': 'string'
+            content: 'string',
+            topic: 'string',
+            receiver_id: 'string',
         }),
         Authenticated(),
         async(request: Request, response: Response) => {
-            let message = request.body.message as string;
-            let id = Minify.encode('messages', request.insertId as bigint);
+            let authentication: Authentication = request.authentication;
+            let content = request.body.content as string;
+            let topic = request.body.topic as CreateMessage['topic'];
+            let receiver_id = Minify.decode('users', request.body.receiver_id as string);
+            let result = await MessageService.insert(authentication.id, receiver_id, content, topic);
+            let id = Minify.encode('messages', result.insertId as bigint);
 
             return response.status(201).json({
-                created: true, 
-                message,
+                created: true,
                 id, 
                 path: `${request.path}/${id}`
             });
@@ -86,36 +98,31 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_UpdateMessage
      */
-    api.patch(Prefix + BaseURI + '/:[id]',
-        ValidateMiddleware('params', {id: 'string'}),
+    api.patch(Prefix + BaseURI + '/:id',
+        ValidateMiddleware('params', { id: 'string' }),
+        ValidateMiddleware('body', {
+            content: 'string',
+            topic: 'string',
+            receiver_id: 'string',
+        }),
         Authenticated(),
+        RequiredMiddleware('messages', AllowOwner, 'update-message'),
         async(request: Request, response: Response) => {
             if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
 
             let id = Minify.decode('messages', request.params.id as string);
-            let message = request.body.content as string;
-
-            return response.status(200).json({
-
+            let content = request.body.content as string;
+            let topic = request.body.topic as CreateMessage['topic'];
+            let receiver_id = Minify.decode('users', request.body.receiver_id as string);
+            let result = await MessageService.update(id, {
+                content,
+                topic,
+                receiver_id,
             });
-        }
-    );
-
-    /**
-     * @alias MessageRoute_DeactivateMessage
-     */
-    api.post(Prefix + BaseURI + '/deactivate/:[id]',
-        ValidateMiddleware('params', {id: 'string'}),
-        Authenticated(),
-        async(request: Request, response: Response) => {
-            if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
-
-            let id = Minify.decode('messages', request.params.id as string);
-            let result = await MessageService.markAsDeleted(id);
 
             return response.status(204).json({
-                deactivated: true, 
-                deactivated_rows: result.numUpdatedRows,
+                updated: true, 
+                updated_rows: '' + result.numUpdatedRows,
             });
         }
     );
@@ -123,9 +130,10 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_DeleteMessage
      */
-    api.delete(Prefix + BaseURI + '/:[id]',
-        ValidateMiddleware('params', {id: 'string'}),
+    api.delete(Prefix + BaseURI + '/:id',
+        ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
+        RequiredMiddleware('messages', 'delete-message'),
         async(request: Request, response: Response) => {
             if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
 
@@ -134,7 +142,27 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
 
             return response.status(204).json({
                 deleted: true, 
-                deleted_rows: result.numDeletedRows,
+                deleted_rows: '' + result.numDeletedRows,
+            });
+        }
+    );
+
+    /**
+     * @alias MessageRoute_DeactivateMessage
+     */
+    api.post(Prefix + BaseURI + '/deactivate/:id',
+        ValidateMiddleware('params', { id: 'string' }),
+        Authenticated(),
+        RequiredMiddleware('messages', AllowOwner, 'deactivate-message'),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
+
+            let id = Minify.decode('messages', request.params.id as string);
+            let result = await MessageService.markAsDeleted(id);
+
+            return response.status(204).json({
+                deactivated: true, 
+                deactivated_rows: '' + result.numUpdatedRows,
             });
         }
     );
@@ -142,9 +170,10 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_ReviewMessage
      */
-    api.post(Prefix + BaseURI + '/approve/:[id]',
-        ValidateMiddleware('params', {id: 'string'}),
+    api.post(Prefix + BaseURI + '/approve/:id',
+        ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
+        RequiredMiddleware('messages', 'approve-message'),
         async(request: Request, response: Response) => {
             if (!Minify.validate('messages', request.params.id as string)) throw new NotFoundError('Message not found');
 
@@ -153,8 +182,86 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
 
             return response.status(204).json({
                 reviewed: true, 
-                reviewed_rows: result.numUpdatedRows,
+                reviewed_rows: '' + result.numUpdatedRows,
             });
+        }
+    );
+
+    /**
+     * @alias MessageRoute_OutgoingCounts
+     */
+    api.get(Prefix + BaseURI + '/outgoings/counts/:id',
+        ValidateMiddleware('params', { id: 'string' }),
+        Authenticated(),
+        RequiredMiddleware('messages/outgoings', AllowOwner, 'view-message'),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
+
+            let id = Minify.decode('users', request.params.id as string);
+            let counts = await MessageService.outgoings.counts(id);
+
+            return response.status(204).json({ type: 'message', counts});
+        }
+    );
+
+    /**
+     * @alias MessageRoute_Outgoings
+     */
+    api.get(Prefix + BaseURI + '/outgoings/:id',
+        ValidateMiddleware('params', { id: 'string' }),
+        Authenticated(),
+        RequiredMiddleware('messages/outgoings', AllowOwner, 'view-message'),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
+
+            let id = Minify.decode('users', request.params.id as string);
+            let authentication: Authentication = request.authentication;
+            let {limit, offset} = Pagination.getData(request);
+            let total = await MessageService.outgoings.counts(id);
+            let messages = await MessageService.outgoings.selects(id, offset, limit);
+            let filtered = await MessageService.filters.messages(authentication.id, messages);
+            let pagination = Pagination.create(request, filtered, total);
+
+            return response.status(204).json(pagination);
+        }
+    );
+
+    /**
+     * @alias MessageRoute_IncomingCounts
+     */
+    api.get(Prefix + BaseURI + '/incomings/counts/:id',
+        ValidateMiddleware('params', { id: 'string' }),
+        Authenticated(),
+        RequiredMiddleware('messages/incomings', AllowOwner, 'view-message'),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
+
+            let id = Minify.decode('users', request.params.id as string);
+            let counts = await MessageService.incomings.counts(id);
+
+            return response.status(204).json({ type: 'message', counts});
+        }
+    );
+
+    /**
+     * @alias MessageRoute_Incomings
+     */
+    api.get(Prefix + BaseURI + '/incomings/:id',
+        ValidateMiddleware('params', { id: 'string' }),
+        Authenticated(),
+        RequiredMiddleware('messages/incomings', AllowOwner, 'view-message'),
+        async(request: Request, response: Response) => {
+            if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
+
+            let id = Minify.decode('users', request.params.id as string);
+            let authentication: Authentication = request.authentication;
+            let {limit, offset} = Pagination.getData(request);
+            let total = await MessageService.incomings.counts(id);
+            let messages = await MessageService.incomings.selects(id, offset, limit);
+            let filtered = await MessageService.filters.messages(authentication.id, messages);
+            let pagination = Pagination.create(request, filtered, total);
+
+            return response.status(204).json(pagination);
         }
     );
 }

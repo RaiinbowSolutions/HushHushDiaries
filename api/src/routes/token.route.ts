@@ -25,8 +25,8 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
 
     api.post(Prefix + BaseURI,
         ValidateMiddleware('body', {
-            'email': { type: 'string', required: false },
-            'password': { type: 'string', required: false },
+            email: { type: 'string', required: false },
+            password: { type: 'string', required: false },
         }),
         async (request: Request, response: Response) => {
             if (!Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
@@ -35,7 +35,7 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
             
             if (id === undefined) throw new BadRequestError(`Given login data did not match`);
 
-            let credential = await UserService.credentials.selectCredential(id);
+            let credential = await UserService.credentials.select(id);
             let hash = Encryption.hashing(password, credential.salt);
 
             if (hash !== credential.password) throw new BadRequestError(`Given login data did not match`);
