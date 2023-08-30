@@ -1,7 +1,7 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult } from "kysely";
 import { Database, DatabaseDateString, DatabaseSchema, ReferenceType, WhereExpressionFactory } from "../utilities/database";
 import { SelectComment, CreateComment, UpdateComment, Comment } from "../models/comment.model";
-import { SelectLike } from "../models/like.model";
+import { CreateLike, SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
 import { Minify } from "../utilities/minify";
 
@@ -13,6 +13,9 @@ const DefualtComment: Omit<CreateComment, 'author_id' | 'content' | 'refecence_t
     deleted: false,
     approved: false,
     reviewed: false,
+}
+const DefualtLike: Omit<CreateLike, 'user_id' | 'refecence_type' | 'refecence_id'> = {
+    deleted: false,
 }
 
 ///////////////////////////////////////////////////////
@@ -110,6 +113,17 @@ async function markAsApproved(commentId: SelectComment['id'], database: Kysely<D
     let result = await update(commentId, {approved: true, approved_at: DatabaseDateString(new Date())}, database);
     return result;
 }
+async function isOwnerOfComment(commentId: SelectComment['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('comments')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('id', '=', commentId),
+        expressionBuilder('author_id', '=', ownerId)
+    ]))
+    .executeTakeFirst();
+
+    return result !== undefined;
+}
 
 ///////////////////////////////////////////////////////
 /// Comment Like Functions                          ///
@@ -127,6 +141,53 @@ async function countLikes(commentId: SelectLike['refecence_id'], database: Kysel
     .executeTakeFirstOrThrow();
 
     return BigInt(result.total);
+}
+async function addLike(userId: SelectLike['user_id'], commentId: SelectLike['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult | UpdateResult> {
+    let updateResult = await database
+    .updateTable('likes')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('user_id', '=', userId),
+        expressionBuilder('refecence_id', '=', commentId),
+        expressionBuilder('refecence_type', '=', 'comment'),
+    ]))
+    .set({deleted: false, deleted_at: undefined})
+    .executeTakeFirst();
+
+    if (updateResult.numUpdatedRows > 0) return updateResult;
+
+    let insertResult = await database
+    .insertInto('likes')
+    .values({...DefualtLike, user_id: userId, refecence_id: commentId, refecence_type: 'comment'})
+    .executeTakeFirstOrThrow();
+
+    return insertResult;
+}
+async function removeLike(userId: SelectLike['user_id'], commentId: SelectLike['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+    let result = await database
+    .updateTable('likes')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('user_id', '=', userId),
+        expressionBuilder('refecence_id', '=', commentId),
+        expressionBuilder('refecence_type', '=', 'comment'),
+        expressionBuilder('deleted', '!=', true),
+    ]))
+    .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
+    .executeTakeFirst();
+
+    return result;
+}
+async function isOwnerOfLike(commentId: SelectLike['refecence_id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('likes')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('user_id', '=', ownerId),
+        expressionBuilder('refecence_id', '=', commentId),
+        expressionBuilder('refecence_type', '=', 'comment'),
+        expressionBuilder('deleted', '!=', true),
+    ]))
+    .executeTakeFirst();
+
+    return result !== undefined;
 }
 
 ///////////////////////////////////////////////////////
@@ -172,7 +233,13 @@ export const CommentService = {
     markAsDeleted,
     markAsReviewed,
     markAsApproved,
-    countLikes,
+    isOwner: isOwnerOfComment,
+    likes: {
+        counts: countLikes,
+        add: addLike,
+        remove: removeLike,
+        isOwner: isOwnerOfLike,
+    },
     filters: {
         comments: filterComments,
         comment: filterComment,

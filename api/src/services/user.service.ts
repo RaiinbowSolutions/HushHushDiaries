@@ -251,6 +251,9 @@ async function markAsValidated(userId: SelectUser['id'], database: Kysely<Databa
     let result = await update(userId, {validated: true, validated_at: DatabaseDateString(new Date())}, database);
     return result;
 }
+async function isOwnerOfUser(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    return userId === ownerId;
+}
 
 ///////////////////////////////////////////////////////
 /// User Option Functions                           ///
@@ -273,6 +276,14 @@ async function updateOption(userId: SelectUserOption['user_id'], updateUserOptio
     .executeTakeFirstOrThrow();
 
     return result;
+}
+async function isOwnerOfUserOption(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('user_options')
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+
+    return result !== undefined && userId === ownerId;
 }
 
 ///////////////////////////////////////////////////////
@@ -297,6 +308,14 @@ async function updateDetail(userId: SelectUserDetail['user_id'], updateUserDetai
 
     return result;
 }
+async function isOwnerOfUserDetail(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('user_details')
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+
+    return result !== undefined && userId === ownerId;
+}
 
 ///////////////////////////////////////////////////////
 /// User Credential Functions                       ///
@@ -319,6 +338,14 @@ async function updateCredential(userId: SelectUserCredential['user_id'], updateU
     .executeTakeFirstOrThrow();
 
     return result;
+}
+async function isOwnerOfUserCredential(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('user_credentials')
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+
+    return result !== undefined && userId === ownerId;
 }
 
 ///////////////////////////////////////////////////////
@@ -350,7 +377,6 @@ async function selectPermissions(userId: SelectUserPermission['user_id'], offset
 
     return results;
 }
-
 async function addPermission(userId: CreateUserPermission['user_id'], permissionId: CreateUserPermission['permission_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult | UpdateResult> {
     let updateResult = await database
     .updateTable('user_permissions')
@@ -382,6 +408,23 @@ async function removePermission(userId: SelectUserPermission['user_id'], permiss
     .executeTakeFirst();
 
     return result;
+}
+async function isOwnerOfUserPermissions(userId: SelectUser['id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let results = await database
+    .selectFrom('user_permissions')
+    .where('user_id', '=', userId)
+    .offset(offset)
+    .limit(limit)
+    .execute();
+
+    let owner = true;
+
+    for (let result of results) {
+        owner = result !== undefined && userId === ownerId;
+        if (!owner) break;
+    }
+
+    return owner;
 }
 
 ///////////////////////////////////////////////////////
@@ -536,23 +579,28 @@ export const UserService = {
     markAsDeleted,
     markAsBanned,
     markAsValidated,
+    isOwner: isOwnerOfUser,
     options: {
-        selectOption,
-        updateOption,
+        select: selectOption,
+        update: updateOption,
+        isOwner: isOwnerOfUserOption,
     },
     details: {
-        selectDetail,
-        updateDetail,
+        select: selectDetail,
+        update: updateDetail,
+        isOwner: isOwnerOfUserDetail,
     },
     credentials: {
-        selectCredential,
-        updateCredential,
+        select: selectCredential,
+        update: updateCredential,
+        isOwner: isOwnerOfUserCredential,
     },
     permissions: {
-        countPermissions,
-        selectPermissions,
-        addPermission,
-        removePermission,
+        counts: countPermissions,
+        selects: selectPermissions,
+        add: addPermission,
+        remove: removePermission,
+        isOwner: isOwnerOfUserPermissions,
     },
     findUserIdByEmail,
     filters: {

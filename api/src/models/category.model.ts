@@ -6,9 +6,9 @@ import { ColumnType, Insertable, Selectable, Updateable } from "kysely";
 export interface CategoryTable {
     id: ColumnType<bigint, never, never>;
     name: string;
-    description: string | undefined;
+    description: string | null | undefined;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };

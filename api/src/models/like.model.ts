@@ -11,7 +11,7 @@ export interface LikeTable {
     refecence_type: RefecenceTypeOption;
     refecence_id: bigint;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }

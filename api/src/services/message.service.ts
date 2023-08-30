@@ -113,6 +113,17 @@ async function markAsReviewed(messageId: SelectMessage['id'], database: Kysely<D
     let result = await update(messageId, {reviewed: true, reviewed_at: DatabaseDateString(new Date())}, database);
     return result;
 }
+async function isOwnerOfMessage(messageId: SelectMessage['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('messages')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('id', '=', messageId),
+        expressionBuilder('sender_id', '=', ownerId)
+    ]))
+    .executeTakeFirst();
+
+    return result !== undefined;
+}
 
 ///////////////////////////////////////////////////////
 /// Message Outgoing Functions                      ///
@@ -142,6 +153,23 @@ async function selectOutgoings(userId: SelectMessage['sender_id'], offset: numbe
 
     return results;
 }
+async function isOwnerOfOutgoins(userId: SelectMessage['sender_id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let results = await database
+    .selectFrom('messages')
+    .where(OutgoingMessageIsListable(userId))
+    .offset(offset)
+    .limit(limit)
+    .execute();
+
+    let owner = true;
+
+    for (let result of results) {
+        owner = result !== undefined && userId === ownerId;
+        if (!owner) break;
+    }
+
+    return owner;
+}
 
 ///////////////////////////////////////////////////////
 /// Message Incoming Functions                      ///
@@ -170,6 +198,23 @@ async function selectIncomings(userId: SelectMessage['receiver_id'], offset: num
     .execute();
 
     return results;
+}
+async function isOwnerOfIncomings(userId: SelectMessage['sender_id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let results = await database
+    .selectFrom('messages')
+    .where(IncomingMessageIsListable(userId))
+    .offset(offset)
+    .limit(limit)
+    .execute();
+
+    let owner = true;
+
+    for (let result of results) {
+        owner = result !== undefined && userId === ownerId;
+        if (!owner) break;
+    }
+
+    return owner;
 }
 
 ///////////////////////////////////////////////////////
@@ -217,10 +262,17 @@ export const MessageService = {
     delete: Delete,
     markAsDeleted,
     markAsReviewed,
-    countOutgoings,
-    selectOutgoings,
-    countIncomings,
-    selectIncomings,
+    isOwner: isOwnerOfMessage,
+    outgoings: {
+        counts: countOutgoings,
+        selects: selectOutgoings,
+        isOwner: isOwnerOfOutgoins,
+    },
+    incomings: {
+        counts: countIncomings,
+        selects: selectIncomings,
+        isOwner: isOwnerOfIncomings,
+    },
     filters: {
         messages: filterMessages,
         message: filterMessage,

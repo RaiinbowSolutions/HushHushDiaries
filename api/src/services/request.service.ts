@@ -93,6 +93,17 @@ async function markAsReviewed(requestId: SelectRequest['id'], database: Kysely<D
     let result = await update(requestId, {reviewed: true, reviewed_at: DatabaseDateString(new Date())}, database);
     return result;
 }
+async function isOwnerOfRequest(requestId: SelectRequest['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('requests')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('id', '=', requestId),
+        expressionBuilder('sender_id', '=', ownerId)
+    ]))
+    .executeTakeFirst();
+
+    return result !== undefined;
+}
 
 ///////////////////////////////////////////////////////
 /// Request Filter Functions                        ///
@@ -136,6 +147,7 @@ export const RequestService = {
     delete: Delete,
     markAsDeleted,
     markAsReviewed,
+    isOwner: isOwnerOfRequest,
     filters: {
         requests: filterRequests,
         request: filterRequest,

@@ -32,8 +32,8 @@ export const AuthenticationMiddleware = (): Middleware => {
             let payload = Token.decode(auth.value);
             let id = BigInt(payload.id);
             let user = await UserService.select(id);
-            let total = await UserService.permissions.countPermissions(id);
-            let userPermissions = await UserService.permissions.selectPermissions(id, 0, Number(total));
+            let total = await UserService.permissions.counts(id);
+            let userPermissions = await UserService.permissions.selects(id, 0, Number(total));
             let permissions = userPermissions.map((userPermission) => userPermission.name);
 
             authentication.id = payload.id;

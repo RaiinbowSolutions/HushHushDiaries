@@ -1,7 +1,7 @@
 import { DeleteResult, InsertResult, Kysely, Transaction, UpdateResult } from "kysely";
 import { Database, DatabaseDateString, DatabaseSchema, WhereExpressionFactory } from "../utilities/database";
 import { SelectBlog, CreateBlog, UpdateBlog, Blog } from "../models/blog.model";
-import { SelectLike } from "../models/like.model";
+import { CreateLike, SelectLike } from "../models/like.model";
 import { SelectUser } from "../models/user.model";
 import { Minify } from "../utilities/minify";
 
@@ -15,6 +15,9 @@ const DefaultBlog: Omit<CreateBlog, 'title' | 'content' | 'category_id' | 'autho
     approved: false,
     deleted: false
 }
+const DefualtLike: Omit<CreateLike, 'user_id' | 'refecence_type' | 'refecence_id'> = {
+    deleted: false,
+}
 
 ///////////////////////////////////////////////////////
 /// Filters                                         ///
@@ -24,6 +27,16 @@ const blogIsListable: WhereExpressionFactory<DatabaseSchema, 'blogs'> = (express
     return expressionBuilder.or([
         expressionBuilder('blogs.deleted', '!=', true),
     ]);
+}
+const ownedBlogIsListable: (userId: SelectUser['id']) => WhereExpressionFactory<DatabaseSchema, 'blogs'> = (userId) => {
+    return (expressionBuilder) => {
+        return expressionBuilder.and([
+            expressionBuilder('blogs.author_id', '=', userId),
+            expressionBuilder.or([
+                expressionBuilder('blogs.deleted', '!=', true),
+            ]),
+        ]);
+    };
 }
 const blogLikeIsListable: (blogId: SelectLike['refecence_id']) => WhereExpressionFactory<DatabaseSchema, 'likes'> = (blogId) => {
     return (expressionBuilder) => {
@@ -74,10 +87,10 @@ async function select(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema>
 
     return result;
 }
-async function insert(userId: CreateBlog['author_id'], title: CreateBlog['title'], content: CreateBlog['content'], categoryId: CreateBlog['category_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
+async function insert(userId: CreateBlog['author_id'], title: CreateBlog['title'], content: CreateBlog['content'], categoryId: CreateBlog['category_id'], keywords: CreateBlog['keywords'] = undefined, description: CreateBlog['description'] = undefined, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult> {
     let result = await database
     .insertInto('blogs')
-    .values({...DefaultBlog, author_id: userId, title, content, category_id: categoryId})
+    .values({...DefaultBlog, author_id: userId, title, content, category_id: categoryId, keywords, description})
     .executeTakeFirstOrThrow();
 
     return result;
@@ -115,6 +128,67 @@ async function markAsPublished(blogId: SelectBlog['id'], database: Kysely<Databa
     let result = await update(blogId, {published: true, published_at: DatabaseDateString(new Date())}, database);
     return result;
 }
+async function markAsUnpublished(blogId: SelectBlog['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+    let result = await update(blogId, {published: false, published_at: null}, database);
+    return result;
+}
+async function isOwnerOfBlog(blogId: SelectBlog['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('blogs')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('id', '=', blogId),
+        expressionBuilder('author_id', '=', ownerId)
+    ]))
+    .executeTakeFirst();
+
+    return result !== undefined;
+}
+
+///////////////////////////////////////////////////////
+/// Blog Owned Functions                            ///
+///////////////////////////////////////////////////////
+
+async function ownedCounts(userId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<bigint> {
+    let result = await database
+    .selectFrom('blogs')
+    .select(
+        (expressionBuilder) => expressionBuilder.fn
+        .count<bigint>('id')
+        .as('total')
+    )
+    .where(ownedBlogIsListable(userId))
+    .executeTakeFirstOrThrow();
+
+    return BigInt(result.total);
+}
+async function owned(userId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<SelectBlog[]> {
+    let results = await database
+    .selectFrom('blogs')
+    .selectAll()
+    .where(ownedBlogIsListable(userId))
+    .offset(offset)
+    .limit(limit)
+    .execute();
+
+    return results;
+}
+async function isOwnerOfOwned(userId: SelectUser['id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let results = await database
+    .selectFrom('blogs')
+    .where(ownedBlogIsListable(userId))
+    .offset(offset)
+    .limit(limit)
+    .execute();
+
+    let owner = true;
+
+    for (let result of results) {
+        owner = result !== undefined && userId === ownerId;
+        if (!owner) break;
+    }
+
+    return owner;
+}
 
 ///////////////////////////////////////////////////////
 /// Blog Like Functions                             ///
@@ -132,6 +206,53 @@ async function countLikes(blogId: SelectLike['refecence_id'], database: Kysely<D
     .executeTakeFirstOrThrow();
 
     return BigInt(result.total);
+}
+async function addLike(userId: SelectLike['user_id'], blogId: SelectLike['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<InsertResult | UpdateResult> {
+    let updateResult = await database
+    .updateTable('likes')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('user_id', '=', userId),
+        expressionBuilder('refecence_id', '=', blogId),
+        expressionBuilder('refecence_type', '=', 'blog'),
+    ]))
+    .set({deleted: false, deleted_at: undefined})
+    .executeTakeFirst();
+
+    if (updateResult.numUpdatedRows > 0) return updateResult;
+
+    let insertResult = await database
+    .insertInto('likes')
+    .values({...DefualtLike, user_id: userId, refecence_id: blogId, refecence_type: 'blog'})
+    .executeTakeFirstOrThrow();
+
+    return insertResult;
+}
+async function removeLike(userId: SelectLike['user_id'], blogId: SelectLike['refecence_id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<UpdateResult> {
+    let result = await database
+    .updateTable('likes')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('user_id', '=', userId),
+        expressionBuilder('refecence_id', '=', blogId),
+        expressionBuilder('refecence_type', '=', 'blog'),
+        expressionBuilder('deleted', '!=', true),
+    ]))
+    .set({deleted: true, deleted_at: DatabaseDateString(new Date())})
+    .executeTakeFirst();
+
+    return result;
+}
+async function isOwnerOfLike(blogId: SelectLike['refecence_id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
+    let result = await database
+    .selectFrom('likes')
+    .where((expressionBuilder) => expressionBuilder.and([
+        expressionBuilder('user_id', '=', ownerId),
+        expressionBuilder('refecence_id', '=', blogId),
+        expressionBuilder('refecence_type', '=', 'blog'),
+        expressionBuilder('deleted', '!=', true),
+    ]))
+    .executeTakeFirst();
+
+    return result !== undefined;
 }
 
 ///////////////////////////////////////////////////////
@@ -177,7 +298,19 @@ export const BlogService = {
     markAsReviewed,
     markAsApproved,
     markAsPublished,
-    countLikes,
+    markAsUnpublished,
+    isOwner: isOwnerOfBlog,
+    owned: {
+        counts: ownedCounts,
+        selects: owned,
+        isOwner: isOwnerOfOwned,
+    },
+    likes: {
+        counts: countLikes,
+        add: addLike,
+        remove: removeLike,
+        isOwner: isOwnerOfLike,
+    },
     filters: {
         blogs: filterBlogs,
         blog: filterBlog,

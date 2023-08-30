@@ -4,12 +4,13 @@ import { ReferenceType } from "../utilities/database";
 import { UserService } from "../services/user.service";
 import { RequestService } from "../services/request.service";
 import { MessageService } from "../services/message.service";
-import { LikeService } from "../services/like.service";
 import { CommentService } from "../services/comment.service";
 import { BlogService } from "../services/blog.service";
 import { ForbiddenError } from "./error.middleware";
 import { Minify } from "../utilities/minify";
+import { Pagination } from "../utilities/pagination";
 
+export type OwnerReferenceType = 'blogs' | 'blogs/owned' | 'blogs/likes' | 'comments' | 'comments/likes' | 'messages' | 'messages/outgoings' | 'messages/incomings' | 'requests' | 'users' | 'users/options' | 'users/details' | 'users/credentials' | 'users/permissions';
 export enum SpecialPermission {
     AllowOwner = 'allow-owner',
     AllowAdmin = 'the-lord-of-the-rings',
@@ -24,66 +25,57 @@ function hasRequiredPermissions(userPermissions: string[], permissions: (string 
     return true;
 }
 
-async function isOwner(as: Authentication['id'], referenceTableType: ReferenceType, referenceId: bigint) {
-    if (referenceTableType == 'users') {
-        let user = await UserService.select(referenceId);
-        return as == user.id;
+function getReferenceType(ownerReferenceType: OwnerReferenceType): ReferenceType {
+    switch(ownerReferenceType) {
+        case 'blogs': return 'blogs';
+        case 'blogs/owned': return 'users';
+        case 'blogs/likes': return 'blogs';
+        case 'comments': return 'comments';
+        case 'comments/likes': return 'comments';
+        case 'messages': return 'messages';
+        case 'messages/outgoings': return 'users';
+        case 'messages/incomings': return 'users';
+        case 'requests': return 'requests';
+        case 'users': return 'users';
+        case 'users/options': return 'users';
+        case 'users/details': return 'users';
+        case 'users/credentials': return 'users';
+        case 'users/permissions': return 'users';
     }
-
-    if (referenceTableType == 'user_options') {
-        let option = await UserService.options.selectOption(referenceId);
-        return as == option.user_id;
-    }
-
-    if (referenceTableType == 'user_details') {
-        let detail = await UserService.details.selectDetail(referenceId);
-        return as == detail.user_id;
-    }
-
-    if (referenceTableType == 'user_credentials') {
-        let credential = await UserService.credentials.selectCredential(referenceId);
-        return as == credential.user_id;
-    }
-
-    if (referenceTableType == 'requests') {
-        let request = await RequestService.select(referenceId);
-        return as == request.sender_id;
-    }
-
-    if (referenceTableType == 'messages') {
-        let message = await MessageService.select(referenceId);
-        return as == message.sender_id || as == message.receiver_id;
-    }
-
-    if (referenceTableType == 'likes') {
-        let like = await LikeService.select(referenceId);
-        return as == like.user_id;
-    }
-
-    if (referenceTableType == 'comments') {
-        let comment = await CommentService.select(referenceId);
-        return as == comment.author_id;
-    }
-
-    if (referenceTableType == 'blogs') {
-        let blog = await BlogService.select(referenceId);
-        return as == blog.author_id;
-    }
-
-    return false;
 }
 
-export const RequiredMiddleware = (referenceType: ReferenceType, referenceTableType: ReferenceType, ...permissions: (string | SpecialPermission)[]): Middleware => {
+async function isOwner(ownerReferenceType: OwnerReferenceType, as: Authentication['id'], referenceId: bigint, offset: number, limit: number) {
+    switch(ownerReferenceType) {
+        case 'blogs': return await BlogService.isOwner(referenceId, as);
+        case 'blogs/owned': return await BlogService.owned.isOwner(referenceId, as, offset, limit);
+        case 'blogs/likes': return await BlogService.likes.isOwner(referenceId, as);
+        case 'comments': return await CommentService.isOwner(referenceId, as);
+        case 'comments/likes': return await CommentService.likes.isOwner(referenceId, as);
+        case 'messages': return await MessageService.isOwner(referenceId, as);
+        case 'messages/outgoings': return await MessageService.outgoings.isOwner(referenceId, as, offset, limit);
+        case 'messages/incomings': return await MessageService.incomings.isOwner(referenceId, as, offset, limit);
+        case 'requests': return await RequestService.isOwner(referenceId, as);
+        case 'users': return await UserService.isOwner(referenceId, as);
+        case 'users/options': return await UserService.options.isOwner(referenceId, as);
+        case 'users/details': return await UserService.details.isOwner(referenceId, as);
+        case 'users/credentials': return await UserService.credentials.isOwner(referenceId, as);
+        case 'users/permissions': return await UserService.permissions.isOwner(referenceId, as, offset, limit);
+    }
+}
+
+export const RequiredMiddleware = (ownerReferenceType: OwnerReferenceType | undefined, ...permissions: (string | SpecialPermission)[]): Middleware => {
     return async (request, response, next) => {
         let authentication: Authentication = request.authentication;
-        let referenceId = Minify.decode(referenceType, request.params.id as string);
         let failed = true;
 
         if (authentication.permissions.includes(SpecialPermission.AllowAdmin)) return next();
+        if (permissions.includes(SpecialPermission.AllowOwner) && ownerReferenceType !== undefined) {
+            let referenceType = getReferenceType(ownerReferenceType);
+            let referenceId = Minify.decode(referenceType, request.params.id as string);
+            let {limit, offset} = Pagination.getData(request);
+            let owner = await isOwner(ownerReferenceType, authentication.id, referenceId, offset, limit);
 
-        if (permissions.includes(SpecialPermission.AllowOwner)) {
-            let owner = await isOwner(authentication.id, referenceTableType, referenceId);
-            if (owner) failed = false; 
+            if (owner) failed = false;
         }
 
         let allowed = hasRequiredPermissions(authentication.permissions, permissions);

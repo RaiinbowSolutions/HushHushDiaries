@@ -12,9 +12,9 @@ export interface MessageTable {
     sender_id: bigint;
     receiver_id: bigint;
     reviewed: boolean;
-    reviewed_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    reviewed_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 };

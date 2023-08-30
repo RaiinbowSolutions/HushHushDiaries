@@ -11,23 +11,22 @@ type GenderOption = 'female' | 'male' | 'nonbinary' | 'transwoman' | 'transman';
 export interface UserTable {
     id: ColumnType<bigint, never, never>;
     email: string;
-    username: string | undefined;
+    username: string | null | undefined;
     anonym: boolean;
     validated: boolean;
-    validated_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    validated_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     banned: boolean;
-    banned_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    banned_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
 export type SelectUser = Selectable<UserTable>;
 export type CreateUser = Insertable<UserTable>;
 export type UpdateUser = Updateable<UserTable>;
-export type User = Omit<SelectUser, 'id' | 'username'> & {
-    id: string,
-    username: string,
+export type User = Omit<SelectUser, 'id'> & {
+    id: string
 };
 
 /**
@@ -38,7 +37,7 @@ export interface UserPermissionTable {
     user_id: bigint;
     permission_id: bigint;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
@@ -68,7 +67,7 @@ export interface UserOptionTable {
     pronouns_show_state: ShowStateOption;
     profile_description_show_state: ShowStateOption;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
@@ -86,14 +85,14 @@ export type UserOption = Omit<SelectUserOption, 'id' | 'user_id'> & {
 export interface UserDetailTable {
     id: ColumnType<bigint, never, never>;
     user_id: bigint;
-    firstname: string | undefined;
-    lastname: string | undefined;
-    birthday: ColumnType<Date | undefined, string | undefined, string | undefined>;
-    gender: GenderOption | undefined;
-    pronouns: string | undefined;
-    profile_description: string | undefined;
+    firstname: string | null | undefined;
+    lastname: string | null | undefined;
+    birthday: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
+    gender: GenderOption | null | undefined;
+    pronouns: string | null | undefined;
+    profile_description: string | null | undefined;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
@@ -116,7 +115,7 @@ export interface UserCredentialTable {
     password: string;
     salt: string;
     deleted: boolean;
-    deleted_at: ColumnType<Date | undefined, string | undefined, string | undefined>;
+    deleted_at: ColumnType<Date | null | undefined, string | null | undefined, string | null | undefined>;
     updated_at: ColumnType<Date, never, never>;
     created_at: ColumnType<Date, never, never>;
 }
