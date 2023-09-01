@@ -41,6 +41,8 @@ export default function RootLayout({
               <Link href={'/blogs'}><span className="material-symbols-outlined">menu_book</span>Blogs</Link>
               <Link href={'/categories'}><span className="material-symbols-outlined">category</span>Categories</Link>
               <Link href={'/users'}><span className="material-symbols-outlined">group</span>Users</Link>
+            </nav>
+            <nav className='sub-navigation'>
               <Link href={'/about'}><span className="material-symbols-outlined">lightbulb</span>About Us</Link>
               <Link href={'/info'}><span className="material-symbols-outlined">info_i</span>Information</Link>
               <Link href={'/licence'}><span className="material-symbols-outlined">copyright</span>Licence</Link>
@@ -48,7 +50,12 @@ export default function RootLayout({
           </div>
         </aside>
         <main>
-          {children}
+          <header>
+            <h1>Hush Hush Diaries</h1>
+          </header>
+          <div className='viewer'>
+            {children}
+          </div>
         </main>
       </body>
     </html>

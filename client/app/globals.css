@@ -1,39 +1,80 @@
+:root {
+    --dark-gray: hsl(0, 0%, 12%);
+    --dark-gray-border: hsl(0, 0%, 20%);
+    --dark-gray-text: hsl(0, 0%, 85%);
+}
+
 * {
     margin: 0;
     padding: 0;
+    color: inherit;
+    box-sizing: border-box;
 }
 
 body {
     display: grid;
     grid-template-columns: max-content 1fr;
     height: 100vh;
+    background-color: var(--dark-gray);
+    color: var(--dark-gray-text);
+}
+
+main {
+    display: grid;
+    grid-template-rows: max-content 1fr;
+}
+
+header {
+    border-bottom: 1px solid var(--dark-gray-border);
+    padding: 1em 2em;
+    text-align: center;
+}
+
+.viewer {
+    overflow-y: scroll;
+    height: 100%;
+    padding: 2em;
+}
+
+button, input {
+    background-color: var(--dark-gray);
+    border: 1px solid var(--dark-gray-border);
+    border-radius: 0.5em;
+    color: var(--dark-gray-text);
+    padding: .5em;
+    margin: 1em;
 }
 
 aside {
+    display: grid;
+    grid-template-rows: 18em 1fr;
     overflow: hidden;
     width: 18em;
-    border-right: 1px solid black;
+    border-right: 1px solid var(--dark-gray-border);
 }
 
 .account-panel {
     display: grid;
     grid-template-rows: 1fr min-content;
     height: 18em;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--dark-gray-border);
+    padding: 1em 0;
 }
 
 .account-image {
+    position: relative;
     overflow: hidden;
-    border: 1px solid black;
+    border: 0.5em solid var(--dark-gray-border);
     border-radius: 50%;
     aspect-ratio : 1 / 1;
     margin: 2em auto;
-    height: 12em;
+    height: 11em;
 }
 .account-image image {
     width: 100%;
 }
 .account-image span {
+    display: block;
     font-size: 12em;
     text-align: center;
     width: 100%;
@@ -46,7 +87,22 @@ aside {
     justify-content: space-evenly;
 }
 
+.menu-panel {
+    display: grid;
+    grid-template-rows: 1fr min-content;
+}
+
 .main-navigation {
     display: flex;
     flex-direction: column;
+    gap: 1em;
+    border-bottom: 1px solid var(--dark-gray-border);
+    padding: 1em;
+}
+
+.sub-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
 }
