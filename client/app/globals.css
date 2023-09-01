@@ -1,0 +1,52 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    height: 100vh;
+}
+
+aside {
+    overflow: hidden;
+    width: 18em;
+    border-right: 1px solid black;
+}
+
+.account-panel {
+    display: grid;
+    grid-template-rows: 1fr min-content;
+    height: 18em;
+    border-bottom: 1px solid black;
+}
+
+.account-image {
+    overflow: hidden;
+    border: 1px solid black;
+    border-radius: 50%;
+    aspect-ratio : 1 / 1;
+    margin: 2em auto;
+    height: 12em;
+}
+.account-image image {
+    width: 100%;
+}
+.account-image span {
+    font-size: 12em;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+.account-navigation {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.main-navigation {
+    display: flex;
+    flex-direction: column;
+}
