@@ -1,13 +1,11 @@
-import { CreateBlog } from "@/components/createBlog";
 import Link from "next/link";
 
 export default function BlogsPage() {
     return (
         <>
             <h1>Blogs</h1>
-            <button className="createBlog">
-                
-            </button>
+            
+            <Link href={'/blogs/create'} title='Create Blogs'><span className="material-symbols-outlined">menu_book</span></Link>
         </>
     )
 }
