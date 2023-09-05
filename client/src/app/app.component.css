@@ -1,0 +1,33 @@
+:host {
+    display: grid;
+    grid-template-columns: 16em 1fr;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: 
+        "aside header"
+        "aside main"
+    ;
+    height: 100vh;
+}
+
+:host ::ng-deep app-sidebar {
+    grid-area: aside;
+}
+
+:host ::ng-deep app-header {
+    grid-area: header;
+}
+
+main {
+    grid-area: main;
+
+    overflow-y: scroll;
+    padding: 1em;
+}
+
+main.fullview {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+
+    overflow-y: auto;
+    margin: 0 auto;
+}

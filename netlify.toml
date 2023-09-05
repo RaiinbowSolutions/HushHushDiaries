@@ -1,12 +1,12 @@
 [build]
 command = "npm run build"
-publish = "client/.next"
+publish = "client/dist"
 functions = "api/build"
 
 [dev]
 command = "npm run start"
 functionsPort = 9000
-targetPort = 3000
+targetPort = 4200
 port = 8080
 envFiles = [".env.development.local", ".env.local", ".env.development", ".env"]
 

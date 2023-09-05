@@ -1,0 +1,10 @@
+<app-account-image />
+<p class="center">Welcome to</p>
+<h1>Hush Hush Diaries</h1>
+<h2>Login</h2>
+<form [formGroup]="form">
+    <input type="email" name="email" placeholder="Email address" formControlName="email" />
+    <input type="password" name="passowrd" placeholder="Password" formControlName="password" />
+    <a class="button" routerLink="/users/create" routerLinkActive="active" ariaCurrentWhenActive="page">Create</a>
+    <a class="button" (click)="login()">Login</a>
+</form>

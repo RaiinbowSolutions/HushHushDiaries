@@ -45,8 +45,8 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
             });
 
             return response
-            .cookie('token_type', 'Bearer', CookieOption(new Date()))
-            .cookie('token', token, CookieOption(new Date()))
+            //.cookie('token_type', 'Bearer', CookieOption(new Date()))
+            //.cookie('token', token, CookieOption(new Date()))
             .status(200)
             .json({
                 type: 'Bearer',
