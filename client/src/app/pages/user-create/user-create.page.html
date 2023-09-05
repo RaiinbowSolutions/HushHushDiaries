@@ -1,1 +1,9 @@
-<p>user-create works!</p>
+<app-welcome />
+<h2>Create</h2>
+<form [formGroup]="form">
+    <input type="email" name="email" placeholder="Email address" autocomplete="email" formControlName="email" />
+    <input type="password" name="password" placeholder="Password" autocomplete="new-password" formControlName="password" />
+    <input type="password" name="retype_password" placeholder="Retype password" autocomplete="new-password" formControlName="retype_password" />
+    <a class="button" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Cancel</a>
+    <a class="button" (click)="create()">Create</a>
+</form>

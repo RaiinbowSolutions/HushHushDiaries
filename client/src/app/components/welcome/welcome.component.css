@@ -1,0 +1,10 @@
+h1 {
+    text-align: center;
+    border-bottom: 1px solid var(--dark-gray-border);
+    padding: 0.5em;
+    margin-bottom: 1em;
+}
+
+.center {
+    text-align: center;
+}
