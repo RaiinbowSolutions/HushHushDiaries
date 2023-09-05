@@ -14,7 +14,10 @@ export class LogoutPage {
   ) {}
 
   ngOnInit() {
-    this.authService.deauthenticate();
-    this.router.navigateByUrl('/login');
+    this.authService.deauthenticated.subscribe((state) => {
+      this.router.navigateByUrl('/login');
+    });
+    
+    this.authService.logout();
   }
 }

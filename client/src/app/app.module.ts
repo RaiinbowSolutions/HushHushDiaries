@@ -18,6 +18,7 @@ import { UserCreatePage } from './pages/user-create/user-create.page';
 import { AuthenticationService } from './services/authentication.service';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
+import { WelcomeComponent } from './components/welcome/welcome.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     LoginPage,
     LogoutPage,
     UserCreatePage,
+    WelcomeComponent,
   ],
   imports: [
     BrowserModule,
