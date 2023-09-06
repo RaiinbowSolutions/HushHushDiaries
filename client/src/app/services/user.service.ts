@@ -14,7 +14,7 @@ type CreatedUserResponse = {
 })
 export class UserService {
 
-  errorThrown: EventEmitter<boolean> = new EventEmitter<boolean>();
+  userCreationFailed: EventEmitter<boolean> = new EventEmitter<boolean>();
   userCreated: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(
@@ -23,8 +23,8 @@ export class UserService {
 
   create(email: string, password: string) {
     this.http.post<CreatedUserResponse>(userPath, {email, password}).subscribe({
-      complete: () => this.userCreated.emit(true),
-      error: () => this.errorThrown.emit(true),
+      next: () => this.userCreated.emit(true),
+      error: () => this.userCreationFailed.emit(true),
     });
   }
 }

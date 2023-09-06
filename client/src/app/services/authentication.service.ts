@@ -3,14 +3,17 @@ import { EventEmitter, Injectable } from '@angular/core';
 import jwt_decode from 'jwt-decode';
 
 const tokenPath = '/.netlify/functions/api/token';
-const refreshPrompOffsetInSeconds = 60 * 5;
+const refreshBeforeInSeconds = 2 * 60;
 
 type Auth = {
   token: string;
   type: string;
+  refresh: string;
 }
 type Token = {
   id: string, 
+  email: string, 
+  username: string, 
   iat: number, 
   nbf: number, 
   exp: number, 
@@ -21,48 +24,56 @@ type Token = {
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private email: string | null = null;
-  private password: string | null = null;
+  private payload: Token | null = null;
 
-  deauthenticated: EventEmitter<boolean> = new EventEmitter<boolean>();
-  authenticated: EventEmitter<boolean> = new EventEmitter<boolean>();
-  expireSoon: EventEmitter<boolean> = new EventEmitter<boolean>();
+  refreshFailed = new EventEmitter(true);
+  loginFailed = new EventEmitter(true);
+  hasLogout = new EventEmitter(true);
+  hasLogin = new EventEmitter(true);
+  tokenExpireSoon = new EventEmitter(true);
 
   constructor(
     private http: HttpClient,
-  ) { }
-
-  getToken() {
+  ) {
     let token = localStorage.getItem("token");
     let type = localStorage.getItem("token_type");
 
-    return `${type} ${token}`;
+    if (token && type) {
+      this.payload = jwt_decode<Token>(token);
+      let now = new Date().valueOf() / 1000;
+      let time = this.payload.exp - now - refreshBeforeInSeconds;
+
+      console.log(time);
+
+      setTimeout(() => {
+        this.tokenExpireSoon.next(true);
+      }, time * 1000);
+    }
+  }
+
+  getEmail() {
+    if (!this.payload) return null;
+    return this.payload.email;
+  }
+
+  getUsername() {
+    if (!this.payload) return null;
+    return `${this.payload.username}#${this.payload.id}`;
   }
 
   isAuthenticated() {
-    let token = localStorage.getItem("token");
-    let type = localStorage.getItem("token_type");
+    if (!this.payload) return false;
 
-    if (token === null) return false;
-    if (type === null) return false;
+    let now = Date.now().valueOf() / 1000;
 
-    try {
-      let payload = jwt_decode<Token>(token);
-      let now = Date.now().valueOf() / 1000;
-
-      if (payload.nbf > now) return false;
-      if (payload.exp <= now) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("token_type");
-        this.deauthenticated.emit(true);
-        return false;
-      }
-
-      if(payload.exp <= now - refreshPrompOffsetInSeconds) {
-        this.expireSoon.emit(true);
-      }
-
-    } catch(error) { return false; }
+    if (this.payload.nbf > now) return false;
+    if (this.payload.exp <= now) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("token_type");
+      localStorage.removeItem("token_refresh");
+      this.payload = null;
+      return false;
+    }
 
     return true;
   }
@@ -70,30 +81,44 @@ export class AuthenticationService {
   logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("token_type");
-    this.deauthenticated.emit(true);
+    localStorage.removeItem("token_refresh");
+    this.payload = null;
+    this.hasLogout.next(true);
   }
 
   login(email: string, password: string) {
-    this.email = email;
-    this.password = password;
-
-    this.http.post<Auth>(tokenPath, {email, password}).subscribe((auth) => {
-      localStorage.setItem("token", auth.token);
-      localStorage.setItem("token_type", auth.type);
-      this.authenticated.emit(true);
+    this.http.post<Auth>(tokenPath, {email, password}).subscribe({
+      error: () => {
+        this.loginFailed.next(true);
+      },
+      next: (auth) => {
+        localStorage.setItem("token", auth.token);
+        localStorage.setItem("token_type", auth.type);
+        localStorage.setItem("token_refresh", auth.refresh);
+        this.payload = jwt_decode<Token>(auth.token);
+        this.hasLogin.next(true);
+      }
     });
   }
 
   refresh() {
-    let email = this.email;
-    let password = this.password;
+    let refresh = localStorage.getItem("token_refresh");
 
-    if (!email) return;
-    if (!password) return;
+    if (!refresh) {
+      this.refreshFailed.next(true);
+      return;
+    }
 
-    this.http.post<Auth>(tokenPath, {email, password}).subscribe((auth) => {
-      localStorage.setItem("token", auth.token);
-      localStorage.setItem("token_type", auth.type);
+    this.http.post<Auth>(tokenPath + '/refresh', {refresh}).subscribe({
+      error: () => {
+        this.refreshFailed.next(true);
+      },
+      next: (auth) => {
+        localStorage.setItem("token", auth.token);
+        localStorage.setItem("token_type", auth.type);
+        localStorage.setItem("token_refresh", auth.refresh);
+        this.payload = jwt_decode<Token>(auth.token);
+      }
     });
   }
 }

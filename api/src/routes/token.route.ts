@@ -23,6 +23,33 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
     const Prefix = options?.prefix || '';
     const BaseURI = '/token';
 
+    api.post(Prefix + BaseURI + '/refresh',
+        ValidateMiddleware('body', {
+            refresh: 'string',
+        }),
+        async (request: Request, response: Response) => {
+            let payload = Token.decodeRefresh(request.body.refresh);
+            let id = payload.id;
+            let user = await UserService.select(payload.id);
+            let token = Token.encode({
+                id,
+                email: user.email,
+                username: user.username || 'Anonym',
+            });
+            let refresh = Token.encodeRefresh(id);
+
+            return response
+            //.cookie('token_type', 'Bearer', CookieOption(new Date()))
+            //.cookie('token', token, CookieOption(new Date()))
+            .status(200)
+            .json({
+                type: 'Bearer',
+                token,
+                refresh,
+            });
+        }
+    );
+
     api.post(Prefix + BaseURI,
         ValidateMiddleware('body', {
             email: { type: 'string', required: false },
@@ -30,6 +57,7 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
         }),
         async (request: Request, response: Response) => {
             if (!Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
+
             let password = request.body.password as string;
             let id = await UserService.findUserIdByEmail(request.body.email as string);
             
@@ -40,9 +68,13 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
 
             if (hash !== credential.password) throw new BadRequestError(`Given login data did not match`);
 
+            let user = await UserService.select(id);
             let token = Token.encode({
                 id,
+                email: user.email,
+                username: user.username || 'Anonym',
             });
+            let refresh = Token.encodeRefresh(id);
 
             return response
             //.cookie('token_type', 'Bearer', CookieOption(new Date()))
@@ -50,7 +82,8 @@ export const TokenRoute = (api: API, options: RegisterOptions | undefined) => {
             .status(200)
             .json({
                 type: 'Bearer',
-                token
+                token,
+                refresh,
             });
         }
     );

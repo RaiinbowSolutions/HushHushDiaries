@@ -60,6 +60,7 @@ export const ErrorMiddleware = (): ErrorHandlingMiddleware => {
             case 'RouteError': code = 404; name = 'Not Found'; break;
             case 'MethodError': code = 405; name = 'Method Not Allowed'; break;
             case 'TokenExpiredError': code = 401; name = 'Token Expired Error'; message = 'Authentication is expired'; break;
+            case 'NotBeforeError': code = 401; name = 'Token Not Before Error'; message = 'Authentication is not ready'; break;
             case 'TypeError': 
                 if (message === 'fetch failed') {
                     code = 503; message = 'Service is unavailable';

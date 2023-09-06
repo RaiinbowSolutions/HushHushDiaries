@@ -19,6 +19,11 @@ import { AuthenticationService } from './services/authentication.service';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { WelcomeComponent } from './components/welcome/welcome.component';
+import { UserService } from './services/user.service';
+import { DialogService } from './services/dialog.service';
+import { MAT_DIALOG_DEFAULT_OPTIONS, MatDialogModule } from '@angular/material/dialog';
+import { CommonModule, TitleCasePipe } from '@angular/common';
+import { DialogComponent } from './components/dialog/dialog.component';
 
 @NgModule({
   declarations: [
@@ -34,17 +39,24 @@ import { WelcomeComponent } from './components/welcome/welcome.component';
     LogoutPage,
     UserCreatePage,
     WelcomeComponent,
+    DialogComponent,
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
     MatIconModule,
+    MatDialogModule,
+    TitleCasePipe,
     HttpClientModule,
   ],
   providers: [
+    DialogService,
     AuthenticationService,
+    UserService,
+    {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}},
   ],
   bootstrap: [AppComponent]
 })

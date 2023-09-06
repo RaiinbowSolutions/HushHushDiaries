@@ -1,0 +1,7 @@
+<div class="dialog {{type}}">
+    <p class="title">{{title}}:</p>
+    <p class="message">{{message}}</p>
+    <form *ngIf="buttons.length > 0">
+        <button *ngFor="let b of buttons" [mat-dialog-close]="true" (click)="click(b)">{{b.text}}</button>
+    </form>
+</div>

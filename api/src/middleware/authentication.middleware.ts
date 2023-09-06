@@ -1,7 +1,6 @@
 import { Middleware } from "lambda-api";
 import { UserService } from '../services/user.service';
 import { Token } from "../utilities/token";
-import { UnauthorizedError } from "./error.middleware";
 
 export type AuthenticationType = "Bearer" | "Basic" | "OAuth" | "Digest" | "none";
 export type Authentication = {

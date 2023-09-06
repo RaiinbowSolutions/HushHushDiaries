@@ -18,7 +18,7 @@ export class UserCreatePage {
     private userService: UserService,
   ) {
     this.form = this.formBuilder.group({
-      email: ['', Validators.required, Validators.email],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
       retype_password: ['', Validators.required],
     },{

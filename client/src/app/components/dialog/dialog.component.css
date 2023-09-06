@@ -1,0 +1,38 @@
+div.dialog {
+    padding: 0.5em;
+}
+
+div.dialog.error {
+    background-color: var(--error);
+    color: var(--error-text);
+}
+
+div.dialog.warning {
+    background-color: var(--warning);
+    color: var(--warning-text);
+}
+
+div.dialog.information {
+    background-color: var(--informational);
+    color: var(--informational-text);
+}
+
+.title {
+    padding-bottom: 0.5em;
+}
+
+.message {
+    font-size: 0.8em;
+    background-color: hsla(0, 100%, 100%, 0.2);
+    padding: 0.5em;
+    border-radius: 0.25rem;
+}
+
+form {
+    padding: 0.5em;
+}
+
+button {
+    background-color: hsla(0, 100%, 100%, 0.2);
+    padding: 0.5em;
+}
