@@ -14,7 +14,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HomePage } from './pages/home/home.page';
 import { LoginPage } from './pages/login/login.page';
 import { LogoutPage } from './pages/logout/logout.page';
-import { UserCreatePage } from './pages/user-create/user-create.page';
+import { UserCreatePage } from './pages/users/user-create/user-create.page';
 import { AuthenticationService } from './services/authentication.service';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -34,6 +34,9 @@ import { BlogViewPage } from './pages/blogs/blog-view/blog-view.page';
 import { NewsComponent } from './pages/news/news.component';
 import { InformationComponent } from './pages/information/information.component';
 import { AboutUsComponent } from './pages/about-us/about-us.component';
+import { UsersPage } from './pages/users/users.page';
+import { UserViewPage } from './pages/users/user-view/user-view.page';
+import { UserEditPage } from './pages/users/user-edit/user-edit.page';
 
 @NgModule({
   declarations: [
@@ -49,7 +52,6 @@ import { AboutUsComponent } from './pages/about-us/about-us.component';
     HomePage,
     LoginPage,
     LogoutPage,
-    UserCreatePage,
     LicencePage,
     CategoriesPage,
     BlogsPage,
@@ -60,6 +62,10 @@ import { AboutUsComponent } from './pages/about-us/about-us.component';
     NewsComponent,
     InformationComponent,
     AboutUsComponent,
+    UsersPage,
+    UserCreatePage,
+    UserViewPage,
+    UserEditPage,
   ],
   imports: [
     BrowserModule,
