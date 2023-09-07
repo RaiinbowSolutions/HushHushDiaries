@@ -6,12 +6,15 @@ import { LogoutPage } from './pages/logout/logout.page';
 import { UserCreatePage } from './pages/user-create/user-create.page';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { AnonymousGuard } from './guards/anonymous.guard';
+import { LicencePage } from './pages/licence/licence.page';
 
 const routes: Routes = [
   { path: '', component: HomePage, canActivate: [AuthenticatedGuard] },
   { path: 'login', component: LoginPage, canActivate: [AnonymousGuard]},
   { path: 'logout', component: LogoutPage, canActivate: [AuthenticatedGuard] },
   { path: 'users/create', component: UserCreatePage, canActivate: [AnonymousGuard] },
+
+  { path: 'licence', component: LicencePage },
 ];
 
 @NgModule({

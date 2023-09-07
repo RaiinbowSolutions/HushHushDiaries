@@ -35,7 +35,7 @@ export class UserCreatePage {
   create() {
     const data = this.form.value;
     if (data.email && data.password) {
-      this.userService.create(data.email, data.password);
+      this.userService.create(data);
     }
   }
 }

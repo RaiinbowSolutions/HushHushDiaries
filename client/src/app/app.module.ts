@@ -24,6 +24,7 @@ import { DialogService } from './services/dialog.service';
 import { MAT_DIALOG_DEFAULT_OPTIONS, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { DialogComponent } from './components/dialog/dialog.component';
+import { LicencePage } from './pages/licence/licence.page';
 
 @NgModule({
   declarations: [
@@ -34,12 +35,13 @@ import { DialogComponent } from './components/dialog/dialog.component';
     InformationalMenuComponent,
     AccountImageComponent,
     HeaderComponent,
+    WelcomeComponent,
+    DialogComponent,
     HomePage,
     LoginPage,
     LogoutPage,
     UserCreatePage,
-    WelcomeComponent,
-    DialogComponent,
+    LicencePage,
   ],
   imports: [
     BrowserModule,

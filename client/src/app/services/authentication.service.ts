@@ -25,12 +25,15 @@ type Token = {
 })
 export class AuthenticationService {
   private payload: Token | null = null;
+  private refreshTimeout: NodeJS.Timeout | null = null;
+  private expireTimeout: NodeJS.Timeout | null = null;
 
   refreshFailed = new EventEmitter(true);
   loginFailed = new EventEmitter(true);
   hasLogout = new EventEmitter(true);
   hasLogin = new EventEmitter(true);
   tokenExpireSoon = new EventEmitter(true);
+  tokenExpired = new EventEmitter(true);
 
   constructor(
     private http: HttpClient,
@@ -38,17 +41,55 @@ export class AuthenticationService {
     let token = localStorage.getItem("token");
     let type = localStorage.getItem("token_type");
 
-    if (token && type) {
-      this.payload = jwt_decode<Token>(token);
+    if (token && type) this.payload = jwt_decode<Token>(token);
+
+    this.setRefreshTimeout();
+    this.setExpireTimeout();
+  }
+
+  private setRefreshTimeout() {
+    if (this.payload) {
       let now = new Date().valueOf() / 1000;
-      let time = this.payload.exp - now - refreshBeforeInSeconds;
+      let expire = this.payload.exp - now;
+      let refresh = this.payload.exp - now - refreshBeforeInSeconds;
 
-      console.log(time);
-
-      setTimeout(() => {
-        this.tokenExpireSoon.next(true);
-      }, time * 1000);
+      if (expire > 0) {
+        if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+        this.refreshTimeout = setTimeout(() => {
+          this.tokenExpireSoon.next(true);
+        }, refresh * 1000);
+      }
     }
+  }
+
+  private setExpireTimeout() {
+    if (this.payload) {
+      let now = new Date().valueOf() / 1000;
+      let expire = this.payload.exp - now;
+
+      if (this.expireTimeout) clearTimeout(this.expireTimeout);
+      this.expireTimeout = setTimeout(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("token_type");
+        localStorage.removeItem("token_refresh");
+        this.payload = null;
+        this.tokenExpired.next(true);
+      }, expire * 1000);
+    }
+  }
+
+  getAuthenticationHeader() {
+    let token = localStorage.getItem("token");
+    let type = localStorage.getItem("token_type");
+
+    if (!token || !type) return '';
+
+    return `${type} ${token}`;
+  }
+
+  getUserId() {
+    if (!this.payload) return null;
+    return this.payload.id;
   }
 
   getEmail() {
@@ -96,6 +137,8 @@ export class AuthenticationService {
         localStorage.setItem("token_type", auth.type);
         localStorage.setItem("token_refresh", auth.refresh);
         this.payload = jwt_decode<Token>(auth.token);
+        this.setRefreshTimeout();
+        this.setExpireTimeout();
         this.hasLogin.next(true);
       }
     });
@@ -118,6 +161,8 @@ export class AuthenticationService {
         localStorage.setItem("token_type", auth.type);
         localStorage.setItem("token_refresh", auth.refresh);
         this.payload = jwt_decode<Token>(auth.token);
+        this.setRefreshTimeout();
+        this.setExpireTimeout();
       }
     });
   }

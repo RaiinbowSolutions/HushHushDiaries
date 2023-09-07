@@ -21,8 +21,11 @@ div {
     background-size: cover;
     background-color: var(--dark-gray);
     background-blend-mode: difference;
-    background-position: calc(50% - 1px) calc(50% - 1px), calc(50% + 1px) calc(50% + 1px);
-    filter: brightness(2) invert(0) grayscale(0);
+    background-position: 
+        calc(50%) calc(50%), 
+        calc(50% + 1px) calc(50% + 1px)
+    ;
+    filter: brightness(6) hue-rotate(90deg) invert(1);
 }
 
 h1 {
