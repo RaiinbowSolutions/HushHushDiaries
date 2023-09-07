@@ -19,12 +19,13 @@ import { UserViewPage } from './pages/users/user-view/user-view.page';
 import { NewsPage } from './pages/news/news.page';
 import { AboutUsPage } from './pages/about-us/about-us.page';
 import { InformationPage } from './pages/information/information.page';
+import { AnonymNewsPage } from './pages/anonym-news/anonym-news.page';
 
 const routes: Routes = [
   { path: '', component: HomePage, canActivate: [AuthenticatedGuard] },
   { path: 'login', component: LoginPage, canActivate: [AnonymousGuard]},
   { path: 'logout', component: LogoutPage, canActivate: [AuthenticatedGuard] },
-  
+
   { path: 'categories', component: CategoriesPage, canActivate: [AuthenticatedGuard] },
 
   { path: 'blogs', component: BlogsPage, canActivate: [AuthenticatedGuard] },
@@ -38,10 +39,15 @@ const routes: Routes = [
   { path: 'users/:id/edit', component: UserEditPage, canActivate: [AuthenticatedGuard] },
   { path: 'users/:id', component: UserViewPage, canActivate: [AuthenticatedGuard] },
 
-  { path: 'about', component: AboutUsPage },
-  { path: 'info', component: InformationPage },
-  { path: 'news', component: NewsPage },
-  { path: 'licence', component: LicencePage },
+  { path: 'about', component: AboutUsPage, canActivate: [AuthenticatedGuard] },
+  { path: 'info', component: InformationPage, canActivate: [AuthenticatedGuard] },
+  { path: 'news', component: NewsPage, canActivate: [AuthenticatedGuard] },
+  { path: 'licence', component: LicencePage, canActivate: [AuthenticatedGuard] },
+
+  { path: 'about', component: AboutUsPage, canActivate: [AnonymousGuard] },
+  { path: 'info', component: InformationPage, canActivate: [AnonymousGuard] },
+  { path: 'news', component: AnonymNewsPage, canActivate: [AnonymousGuard] },
+  { path: 'licence', component: LicencePage, canActivate: [AnonymousGuard] },
 ];
 
 @NgModule({
