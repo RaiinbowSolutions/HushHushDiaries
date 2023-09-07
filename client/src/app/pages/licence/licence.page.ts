@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 
 @Component({
   selector: 'app-licence',
@@ -6,5 +7,13 @@ import { Component } from '@angular/core';
   styleUrls: ['./licence.page.css']
 })
 export class LicencePage {
+  
+  constructor(
+    private authService: AuthenticationService,
+  ) {}
 
+  isFullview(): boolean {
+    return !this.authService.isAuthenticated();
+  }
+  
 }

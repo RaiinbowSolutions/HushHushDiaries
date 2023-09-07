@@ -3,3 +3,6 @@
 <main [ngClass]="{'fullview': isFullview()}">
     <router-outlet />
 </main>
+<footer *ngIf="isFullview()">
+    <app-informational-menu />
+</footer>

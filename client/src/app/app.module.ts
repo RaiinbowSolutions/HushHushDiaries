@@ -37,10 +37,6 @@ import { AboutUsPage } from './pages/about-us/about-us.page';
 import { UsersPage } from './pages/users/users.page';
 import { UserViewPage } from './pages/users/user-view/user-view.page';
 import { UserEditPage } from './pages/users/user-edit/user-edit.page';
-import { AnonymLicencePage } from './pages/anonym-licence/anonym-licence.page';
-import { AnonymNewsPage } from './pages/anonym-news/anonym-news.page';
-import { AnonymInformationPage } from './pages/anonym-information/anonym-information.page';
-import { AnonymAboutUsPage } from './pages/anonym-about-us/anonym-about-us.page';
 
 @NgModule({
   declarations: [
@@ -70,10 +66,6 @@ import { AnonymAboutUsPage } from './pages/anonym-about-us/anonym-about-us.page'
     UserCreatePage,
     UserViewPage,
     UserEditPage,
-    AnonymLicencePage,
-    AnonymNewsPage,
-    AnonymInformationPage,
-    AnonymAboutUsPage,
   ],
   imports: [
     BrowserModule,

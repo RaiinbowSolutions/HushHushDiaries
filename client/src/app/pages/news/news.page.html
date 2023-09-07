@@ -1,5 +1,8 @@
-<h1>News!</h1>
-<br />
-<h3>Latest news</h3>
-<br />
-<p>Feature being added with next patch</p>
+<article>
+    <h1>News!</h1>
+    <h3>Latest news:</h3>
+    <p>Feature being added with next patch.</p>
+</article>
+<form *ngIf="isFullview()">
+    <a class="button" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Back</a>
+</form>

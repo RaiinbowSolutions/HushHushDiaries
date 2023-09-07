@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Location } from '@angular/common';
 import { AuthenticationService } from './services/authentication.service';
 import { DialogService } from './services/dialog.service';
 import { Subscription } from 'rxjs';
@@ -22,7 +21,6 @@ export class AppComponent {
   loginFailed: Subscription | null = null;
   
   constructor(
-    private location: Location,
     private authService: AuthenticationService,
     private dialogService: DialogService,
     private router: Router,
@@ -69,11 +67,6 @@ export class AppComponent {
   }
 
   isFullview(): boolean {
-    let path = this.location.path();
-    
-    if (path.includes('/login')) return true;
-    if (path.includes('/users/create')) return true;
-
-    return false;
+    return !this.authService.isAuthenticated();
   }
 }
