@@ -141,7 +141,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias CommentRoute_DeactivateComment
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('comments', AllowOwner, 'deactivate-comment'),
@@ -161,7 +161,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias CommentRoute_ApproveComment
      */
-    api.post(Prefix + BaseURI + '/approve/:id',
+    api.post(Prefix + BaseURI + '/:id/approve',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'approve-comment'),
@@ -181,7 +181,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias CommentRoute_ReviewComment
      */
-    api.post(Prefix + BaseURI + '/review/:id',
+    api.post(Prefix + BaseURI + '/:id/review',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'review-comment'),
@@ -201,7 +201,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias CommentRoute_LikeCounts
      */
-    api.get(Prefix + BaseURI + '/likes/counts/:id',
+    api.get(Prefix + BaseURI + '/:id/likes/counts',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async(request: Request, response: Response) => {
@@ -217,7 +217,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias CommentRoute_AddLike
      */
-    api.post(Prefix + BaseURI + '/likes/:id',
+    api.post(Prefix + BaseURI + '/:id/likes',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async(request: Request, response: Response) => {
@@ -236,7 +236,7 @@ export const CommentRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias CommentRoute_RemoveLike
      */
-    api.delete(Prefix + BaseURI + '/likes/:id',
+    api.delete(Prefix + BaseURI + '/:id/likes',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('comments/likes', AllowOwner, 'remove-comment-like'),

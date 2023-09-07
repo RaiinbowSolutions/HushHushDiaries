@@ -119,7 +119,7 @@ export const PermissionRoute = (api: API, options: RegisterOptions | undefined) 
     /**
      * @alias PermissionRoute_DeactivatePermission
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'deactivate-permission'),

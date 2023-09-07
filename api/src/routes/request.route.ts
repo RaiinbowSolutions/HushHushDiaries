@@ -146,7 +146,7 @@ export const RequestRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias RequestRoute_DeactivateRequest
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('requests', AllowOwner, 'deactivate-request'),
@@ -166,7 +166,7 @@ export const RequestRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias RequestRoute_ReviewRequest
      */
-    api.post(Prefix + BaseURI + '/review/:id',
+    api.post(Prefix + BaseURI + '/:id/review',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'review-request'),

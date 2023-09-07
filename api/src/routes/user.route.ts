@@ -179,7 +179,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_DeactivateUser
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'deactivate-user'),
@@ -199,7 +199,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_BanUser
      */
-    api.post(Prefix + BaseURI + '/ban/:id',
+    api.post(Prefix + BaseURI + '/:id/ban',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'ban-user'),
@@ -219,7 +219,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_ValidateUser
      */
-    api.post(Prefix + BaseURI + '/validate/:id',
+    api.post(Prefix + BaseURI + '/:id/validate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('users', AllowOwner, 'validate-user'),
@@ -239,7 +239,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_GetUserOption
      */
-    api.get(Prefix + BaseURI + '/option/:id',
+    api.get(Prefix + BaseURI + '/:id/option',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -257,7 +257,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUserOption
      */
-    api.patch(Prefix + BaseURI + '/option/:id',
+    api.patch(Prefix + BaseURI + '/:id/option',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             font_size: { type: 'string', required: false },
@@ -310,7 +310,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_GetUserDetail
      */
-    api.get(Prefix + BaseURI + '/detail/:id',
+    api.get(Prefix + BaseURI + '/:id/detail',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -328,7 +328,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUserDetail
      */
-    api.patch(Prefix + BaseURI + '/detail/:id',
+    api.patch(Prefix + BaseURI + '/:id/detail',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             firstname: { type: 'string', required: false },
@@ -369,7 +369,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UpdateUserCredential
      */
-    api.patch(Prefix + BaseURI + '/credential/:id',
+    api.patch(Prefix + BaseURI + '/:id/credential',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', { password: 'string' }),
         Authenticated(),
@@ -396,7 +396,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UserPermissionCounts
      */
-    api.get(Prefix + BaseURI + '/permissions/counts/:id',
+    api.get(Prefix + BaseURI + '/:id/permissions/counts',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async (request: Request, response: Response) => {
@@ -412,7 +412,7 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_UserPermissions
      */
-    api.get(Prefix + BaseURI + '/permissions/:id',
+    api.get(Prefix + BaseURI + '/:id/permissions',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('query', {
             page: { type: 'number', required: false },
@@ -437,16 +437,16 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_AddUserPermission
      */
-    api.post(Prefix + BaseURI + '/permissions/:id',
-        ValidateMiddleware('params', { id: 'string' }),
-        ValidateMiddleware('body', { permission_id: 'bigint' }),
+    api.post(Prefix + BaseURI + '/:id/permissions/:permission_id',
+        ValidateMiddleware('params', { id: 'string', permission_id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'add-user-permission'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('permissions', request.params.permission_id as string)) throw new NotFoundError('Permission not found');
 
             let id = Minify.decode('users', request.params.id as string);
-            let permission_id = BigInt(request.body.permission_id);
+            let permission_id = Minify.decode('permissions', request.params.permission_id as string);
             let result = await UserService.permissions.add(id, permission_id);
 
             return response.status(204).json({
@@ -458,16 +458,16 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias UserRoute_RemoveUserPermission
      */
-    api.delete(Prefix + BaseURI + '/permissions/:id',
-        ValidateMiddleware('params', { id: 'string' }),
-        ValidateMiddleware('body', { permission_id: 'bigint' }),
+    api.delete(Prefix + BaseURI + '/:id/permissions/:permission_id',
+        ValidateMiddleware('params', { id: 'string', permission_id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'remove-user-permission'),
         async (request: Request, response: Response) => {
             if (!Minify.validate('users', request.params.id as string)) throw new NotFoundError('User not found');
+            if (!Minify.validate('permissions', request.params.permission_id as string)) throw new NotFoundError('Permission not found');
 
             let id = Minify.decode('users', request.params.id as string);
-            let permission_id = BigInt(request.body.permission_id);
+            let permission_id = Minify.decode('permissions', request.params.permission_id as string);
             let result = await UserService.permissions.remove(id, permission_id);
 
             return response.status(204).json({

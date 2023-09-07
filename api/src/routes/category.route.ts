@@ -139,7 +139,7 @@ export const CategoryRoute = (api: API, options: RegisterOptions | undefined) =>
     /**
      * @alias CategoryRoute_DeactivateCategory
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'deactivate-category'),

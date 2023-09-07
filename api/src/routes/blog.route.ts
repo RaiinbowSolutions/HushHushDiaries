@@ -163,7 +163,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_DeactivateBlog
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('blogs', AllowOwner, 'deactivate-blog'),
@@ -183,7 +183,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_ApproveBlog
      */
-    api.post(Prefix + BaseURI + '/approve/:id',
+    api.post(Prefix + BaseURI + '/:id/approve',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware(undefined, 'approve-blog'),
@@ -203,7 +203,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_PublishBlog
      */
-    api.post(Prefix + BaseURI + '/publish/:id',
+    api.post(Prefix + BaseURI + '/:id/publish',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('blogs', AllowOwner, 'publish-blog'),
@@ -223,7 +223,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_UnpublishBlog
      */
-    api.post(Prefix + BaseURI + '/publish/:id',
+    api.post(Prefix + BaseURI + '/:id/publish',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('blogs', AllowOwner, 'unpublish-blog'),
@@ -243,7 +243,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_LikeCounts
      */
-    api.get(Prefix + BaseURI + '/likes/counts/:id',
+    api.get(Prefix + BaseURI + '/:id/likes/counts',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async(request: Request, response: Response) => {
@@ -259,7 +259,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_AddLike
      */
-    api.post(Prefix + BaseURI + '/likes/:id',
+    api.post(Prefix + BaseURI + '/:id/likes',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         async(request: Request, response: Response) => {
@@ -278,7 +278,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_RemoveLike
      */
-    api.delete(Prefix + BaseURI + '/likes/:id',
+    api.delete(Prefix + BaseURI + '/:id/likes',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('blogs/likes', AllowOwner, 'remove-blog-like'),
@@ -298,7 +298,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_OwnedBlogs
      */
-    api.get(Prefix + BaseURI + '/owned/:id',
+    api.get(Prefix + BaseURI + '/:id/owned',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('query', {
             page: {type: 'number', required: false},

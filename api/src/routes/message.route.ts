@@ -150,7 +150,7 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_DeactivateMessage
      */
-    api.post(Prefix + BaseURI + '/deactivate/:id',
+    api.post(Prefix + BaseURI + '/:id/deactivate',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('messages', AllowOwner, 'deactivate-message'),
@@ -170,7 +170,7 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_ReviewMessage
      */
-    api.post(Prefix + BaseURI + '/approve/:id',
+    api.post(Prefix + BaseURI + '/:id/approve',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('messages', 'approve-message'),
@@ -190,7 +190,7 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_OutgoingCounts
      */
-    api.get(Prefix + BaseURI + '/outgoings/counts/:id',
+    api.get(Prefix + BaseURI + '/:id/outgoings/counts',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('messages/outgoings', AllowOwner, 'view-message'),
@@ -207,7 +207,7 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_Outgoings
      */
-    api.get(Prefix + BaseURI + '/outgoings/:id',
+    api.get(Prefix + BaseURI + '/:id/outgoings',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('messages/outgoings', AllowOwner, 'view-message'),
@@ -229,7 +229,7 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_IncomingCounts
      */
-    api.get(Prefix + BaseURI + '/incomings/counts/:id',
+    api.get(Prefix + BaseURI + '/:id/incomings/counts',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('messages/incomings', AllowOwner, 'view-message'),
@@ -246,7 +246,7 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
     /**
      * @alias MessageRoute_Incomings
      */
-    api.get(Prefix + BaseURI + '/incomings/:id',
+    api.get(Prefix + BaseURI + '/:id/incomings',
         ValidateMiddleware('params', { id: 'string' }),
         Authenticated(),
         RequiredMiddleware('messages/incomings', AllowOwner, 'view-message'),
