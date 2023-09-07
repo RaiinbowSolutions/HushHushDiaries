@@ -25,6 +25,15 @@ import { MAT_DIALOG_DEFAULT_OPTIONS, MatDialogModule } from '@angular/material/d
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { DialogComponent } from './components/dialog/dialog.component';
 import { LicencePage } from './pages/licence/licence.page';
+import { CategoriesPage } from './pages/categories/categories.page';
+import { BlogsPage } from './pages/blogs/blogs.page';
+import { BlogUpdatePage } from './pages/blogs/blog-update/blog-update.page';
+import { BlogOwnedPage } from './pages/blogs/blog-owned/blog-owned.page';
+import { BlogCreatePage } from './pages/blogs/blog-create/blog-create.page';
+import { BlogViewPage } from './pages/blogs/blog-view/blog-view.page';
+import { NewsComponent } from './pages/news/news.component';
+import { InformationComponent } from './pages/information/information.component';
+import { AboutUsComponent } from './pages/about-us/about-us.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +51,15 @@ import { LicencePage } from './pages/licence/licence.page';
     LogoutPage,
     UserCreatePage,
     LicencePage,
+    CategoriesPage,
+    BlogsPage,
+    BlogUpdatePage,
+    BlogOwnedPage,
+    BlogCreatePage,
+    BlogViewPage,
+    NewsComponent,
+    InformationComponent,
+    AboutUsComponent,
   ],
   imports: [
     BrowserModule,
