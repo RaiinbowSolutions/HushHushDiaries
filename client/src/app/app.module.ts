@@ -31,9 +31,9 @@ import { BlogUpdatePage } from './pages/blogs/blog-update/blog-update.page';
 import { BlogOwnedPage } from './pages/blogs/blog-owned/blog-owned.page';
 import { BlogCreatePage } from './pages/blogs/blog-create/blog-create.page';
 import { BlogViewPage } from './pages/blogs/blog-view/blog-view.page';
-import { NewsComponent } from './pages/news/news.component';
-import { InformationComponent } from './pages/information/information.component';
-import { AboutUsComponent } from './pages/about-us/about-us.component';
+import { NewsPage } from './pages/news/news.page';
+import { InformationPage } from './pages/information/information.page';
+import { AboutUsPage } from './pages/about-us/about-us.page';
 import { UsersPage } from './pages/users/users.page';
 import { UserViewPage } from './pages/users/user-view/user-view.page';
 import { UserEditPage } from './pages/users/user-edit/user-edit.page';
@@ -59,9 +59,9 @@ import { UserEditPage } from './pages/users/user-edit/user-edit.page';
     BlogOwnedPage,
     BlogCreatePage,
     BlogViewPage,
-    NewsComponent,
-    InformationComponent,
-    AboutUsComponent,
+    NewsPage,
+    InformationPage,
+    AboutUsPage,
     UsersPage,
     UserCreatePage,
     UserViewPage,

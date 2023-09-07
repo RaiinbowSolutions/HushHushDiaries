@@ -16,11 +16,15 @@ import { BlogViewPage } from './pages/blogs/blog-view/blog-view.page';
 import { UsersPage } from './pages/users/users.page';
 import { UserEditPage } from './pages/users/user-edit/user-edit.page';
 import { UserViewPage } from './pages/users/user-view/user-view.page';
+import { NewsPage } from './pages/news/news.page';
+import { AboutUsPage } from './pages/about-us/about-us.page';
+import { InformationPage } from './pages/information/information.page';
 
 const routes: Routes = [
   { path: '', component: HomePage, canActivate: [AuthenticatedGuard] },
   { path: 'login', component: LoginPage, canActivate: [AnonymousGuard]},
   { path: 'logout', component: LogoutPage, canActivate: [AuthenticatedGuard] },
+  
   { path: 'categories', component: CategoriesPage, canActivate: [AuthenticatedGuard] },
 
   { path: 'blogs', component: BlogsPage, canActivate: [AuthenticatedGuard] },
@@ -34,6 +38,9 @@ const routes: Routes = [
   { path: 'users/:id/edit', component: UserEditPage, canActivate: [AuthenticatedGuard] },
   { path: 'users/:id', component: UserViewPage, canActivate: [AuthenticatedGuard] },
 
+  { path: 'about', component: AboutUsPage },
+  { path: 'info', component: InformationPage },
+  { path: 'news', component: NewsPage },
   { path: 'licence', component: LicencePage },
 ];
 
