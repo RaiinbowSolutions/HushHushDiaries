@@ -1,5 +1,5 @@
 div.dialog {
-    padding: 0.5em;
+    padding: 0.5rem;
 }
 
 div.dialog.error {
@@ -18,21 +18,20 @@ div.dialog.information {
 }
 
 .title {
-    padding-bottom: 0.5em;
+    padding-bottom: 0.5rem;
 }
 
 .message {
-    font-size: 0.8em;
     background-color: hsla(0, 100%, 100%, 0.2);
-    padding: 0.5em;
+    padding: 0.5rem;
     border-radius: 0.25rem;
 }
 
 form {
-    padding: 0.5em;
+    padding: 0.5rem;
 }
 
 button {
     background-color: hsla(0, 100%, 100%, 0.2);
-    padding: 0.5em;
+    padding: 0.5rem;
 }

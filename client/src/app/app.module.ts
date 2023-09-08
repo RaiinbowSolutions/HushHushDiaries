@@ -37,6 +37,7 @@ import { AboutUsPage } from './pages/about-us/about-us.page';
 import { UsersPage } from './pages/users/users.page';
 import { UserViewPage } from './pages/users/user-view/user-view.page';
 import { UserEditPage } from './pages/users/user-edit/user-edit.page';
+import { TosComponent } from './components/tos/tos.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { UserEditPage } from './pages/users/user-edit/user-edit.page';
     UserCreatePage,
     UserViewPage,
     UserEditPage,
+    TosComponent,
   ],
   imports: [
     BrowserModule,

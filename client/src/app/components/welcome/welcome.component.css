@@ -1,14 +1,18 @@
 :host {
     display: block;
-    padding: 1em;
+    padding: 1rem;
     aspect-ratio: 1 / 1;
+    width: 22rem;
+    margin: 0 auto;
+    margin-bottom: 1rem;
+    border-bottom: 0.0625rem dashed var(--dark-gray-border);
 }
 
 div {
     overflow: hidden;
     height: 100%;
     width: 100%;
-    margin-bottom: 1em;
+    margin-bottom: 1rem;
     border-radius: 50%;
 }
 
@@ -23,18 +27,11 @@ div {
     background-blend-mode: difference;
     background-position: 
         calc(50%) calc(50%), 
-        calc(50% + 1px) calc(50% + 1px)
+        calc(50% + 0.0625rem) calc(50% + 0.0625rem)
     ;
     filter: brightness(6) hue-rotate(90deg) invert(1);
 }
 
-h1 {
-    text-align: center;
-    border-bottom: 1px solid var(--dark-gray-border);
-    padding: 0.5em;
-    margin-bottom: 1rem;
-}
-
-.center {
+h1, p {
     text-align: center;
 }

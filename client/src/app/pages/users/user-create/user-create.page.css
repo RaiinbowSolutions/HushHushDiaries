@@ -1,5 +1,11 @@
 :host {
     display: block;
-    width: 22em;
     margin: 0 auto;
+}
+
+.details {
+    overflow-y: scroll;
+    height: 30rem;
+    border: 0.0625rem solid var(--dark-gray-border);
+    padding: 1rem;
 }

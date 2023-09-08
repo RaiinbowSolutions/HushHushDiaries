@@ -69,19 +69,16 @@ export const UserRoute = (api: API, options: RegisterOptions | undefined) => {
     );
 
     /**
-     * @alias UserRoute_GetUser_by_Email
+     * @alias UserRoute_GetUserId_by_Email
      */
-    api.get(Prefix + BaseURI + '/email/:email',
-        ValidateMiddleware('params', { email: 'string' }),
-        Authenticated(),
+    api.post(Prefix + BaseURI + '/email',
+        ValidateMiddleware('body', { email: 'string' }),
         async (request: Request, response: Response) => {
-            if (!Validation.email(request.params.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
+            if (!Validation.email(request.body.email as string)) throw new BadRequestError(`Given 'email' is not an valid email address`);
 
-            let id = await UserService.findUserIdByEmail(request.params.email as string);
+            let id = await UserService.findUserIdByEmail(request.body.email as string);
 
-            if (id === undefined) throw new NotFoundError('User not found');
-
-            return response.redirect(308, `/${id}`);
+            return response.status(200).json({id: id ? Minify.encode('users', id) : null});
         }
     );
 

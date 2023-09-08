@@ -2,5 +2,20 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     justify-items: center;
-    border-bottom: 1px solid var(--dark-gray-border);
+    border-bottom: 0.0625rem solid var(--dark-gray-border);
+    padding: 0.5rem;
+}
+
+a {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    text-decoration: none;
+    padding: 0.5rem;
+    color: var(--dark-gray-text);
+}
+
+a:hover, a:active, a:focus-within {
+    background-color: var(--dark-gray-border);
 }

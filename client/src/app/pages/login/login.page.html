@@ -3,6 +3,6 @@
 <form [formGroup]="form">
     <input type="email" name="email" placeholder="Email address" autocomplete="email" formControlName="email" />
     <input type="password" name="password" placeholder="Password" autocomplete="current-password" formControlName="password" />
-    <a class="button" routerLink="/users/create" routerLinkActive="active" ariaCurrentWhenActive="page">Create</a>
-    <a class="button" (click)="login()">Login</a>
+    <button routerLink="/users/create" routerLinkActive="active" ariaCurrentWhenActive="page">Create</button>
+    <button (click)="login()">Login</button>
 </form>
