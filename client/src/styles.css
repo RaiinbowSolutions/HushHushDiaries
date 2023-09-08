@@ -159,5 +159,23 @@ ul {
 }
 
 article {
-    padding-bottom: 1rem;
+    border: 0.0625rem dashed var(--dark-gray-border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+article > :last-child {
+    margin-bottom: 0;
+}
+
+/* Global missing style */
+
+.not_implemented {
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    gap: 1rem;
+    align-items: center;
+    color: var(--error);
+    padding: 1rem;
+    border: 0.0625rem dashed var(--error);
 }
