@@ -176,6 +176,7 @@ article > :last-child {
     gap: 1rem;
     align-items: center;
     color: var(--error);
+    max-width: 40em;
     padding: 1rem;
     border: 0.0625rem dashed var(--error);
 }
