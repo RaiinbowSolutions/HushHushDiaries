@@ -1,0 +1,28 @@
+:host {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    gap: 1rem;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    width: 12rem;
+}
+
+nav button {
+    text-align: left;
+    background-color: var(--dark-gray);
+    border: none;
+    padding: 0.5rem 1rem;
+    color: var(--dark-gray-text);
+}
+
+nav button:hover, nav button:active, nav button:focus-within {
+    background-color: var(--dark-gray-border);
+}
+
+form {
+    width: 40rem;
+    margin-bottom: 1rem;
+}

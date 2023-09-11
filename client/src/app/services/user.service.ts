@@ -53,19 +53,19 @@ export class UserService {
   }
 
   getUser(id: string) {
-    let result = this.http.get<User>(this.path + `${id}`, this.options);
+    let result = this.http.get<User>(this.path + `/${id}`, this.options);
 
     return result;
   }
 
   getUserOption(id: string) {
-    let result = this.http.get<UserOption>(this.path + `${id}`, this.options);
+    let result = this.http.get<UserOption>(this.path + `/${id}`, this.options);
 
     return result;
   }
 
   getUserDetail(id: string) {
-    let result = this.http.get<UserDetail>(this.path + `${id}`, this.options);
+    let result = this.http.get<UserDetail>(this.path + `/${id}`, this.options);
 
     return result;
   }

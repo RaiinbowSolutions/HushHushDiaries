@@ -3,6 +3,8 @@ type DesignTempatureOption = 'cold' | 'normal' | 'warm';
 type ShowStateOption = 'hidden' | 'public';
 type GenderOption = 'female' | 'male' | 'nonbinary' | 'transwoman' | 'transman';
 
+export const GenderOptions: GenderOption[] = ['female', 'male', 'nonbinary', 'transwoman', 'transman'];
+
 export type User = {
     id: string;
     email: string;
