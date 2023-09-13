@@ -75,6 +75,11 @@ export class UserCreatePage {
   }
 
   create() {
+    const puzzle = this.puzzle_form.value;
+    if (puzzle.puzzle_radio !== 'first') {
+      this.tos();
+    }
+
     const data = this.form.value;
     if (data.email && data.password) {
       this.userService.create(data);

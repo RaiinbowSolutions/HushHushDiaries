@@ -94,7 +94,7 @@ form p.validate-message {
     gap: 1rem;
 }
 
-.field > label, .field > input {
+.field > label, .field > input, .field > select {
     grid-column: auto;
 }
 

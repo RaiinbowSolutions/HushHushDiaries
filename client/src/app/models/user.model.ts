@@ -44,7 +44,7 @@ export type UserDetail = {
     user_id: string;
     firstname: string | null;
     lastname: string | null;
-    birthday: Date | null;
+    birthday: string | null;
     gender: GenderOption | null;
     pronouns: string | null;
     profile_description: string | null;

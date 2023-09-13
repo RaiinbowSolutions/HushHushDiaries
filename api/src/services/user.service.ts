@@ -517,7 +517,7 @@ async function filterUserDetail(as: SelectUser['id'], userDetial: SelectUserDeta
 
     if (as == userDetial.user_id || option.firstname_show_state == 'public') firstname = userDetial.firstname || firstname;
     if (as == userDetial.user_id || option.lastname_show_state == 'public') lastname = userDetial.lastname || lastname;
-    if (as == userDetial.user_id || option.birthday_show_state == 'public') birthday = userDetial.birthday ? userDetial.birthday.toLocaleDateString() : undefined || birthday;
+    if (as == userDetial.user_id || option.birthday_show_state == 'public') birthday = userDetial.birthday ? userDetial.birthday.toISOString() : undefined || birthday;
     if (as == userDetial.user_id || option.gender_show_state == 'public') gender = userDetial.gender || gender;
     if (as == userDetial.user_id || option.pronouns_show_state == 'public') pronouns = userDetial.pronouns || pronouns;
     if (as == userDetial.user_id || option.profile_description_show_state == 'public') profile_description = userDetial.profile_description || profile_description;

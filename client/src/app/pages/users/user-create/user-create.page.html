@@ -27,15 +27,15 @@
     <form [formGroup]="puzzle_form">
         <label for="css">
             <input type="radio" name="puzzle_radio" value="first" formControlName="puzzle_radio">
-            First answer
+            All the materials on Raiinbow Solution's Website are provided "as is".
         </label>
         <label for="css">
             <input type="radio" name="puzzle_radio" value="second" formControlName="puzzle_radio">
-            Second answer
+            Raiinbow Solution comes with warranties.
         </label>
         <label for="css">
             <input type="radio" name="puzzle_radio" value="third" formControlName="puzzle_radio">
-            Third answer
+            Raiinbow Solution or its suppliers will be hold accountable for any damages.
         </label>
         <button type="button" (click)="tos()">Back</button>
         <button type="submit" (click)="create()" [disabled]="!puzzle_form.valid">Create</button>

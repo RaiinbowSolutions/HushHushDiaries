@@ -59,19 +59,19 @@ export class UserService {
   }
 
   getUserOption(id: string) {
-    let result = this.http.get<UserOption>(this.path + `/${id}`, this.options);
+    let result = this.http.get<UserOption>(this.path + `/${id}/option`, this.options);
 
     return result;
   }
 
   getUserDetail(id: string) {
-    let result = this.http.get<UserDetail>(this.path + `/${id}`, this.options);
+    let result = this.http.get<UserDetail>(this.path + `/${id}/detail`, this.options);
 
     return result;
   }
 
   getUserPermissions(id: string) {
-    let result = this.http.get<Pagination<Permission>>(this.path + `${id}`, this.options);
+    let result = this.http.get<Pagination<Permission>>(this.path + `${id}/permissions`, this.options);
 
     return result;
   }
@@ -137,6 +137,7 @@ export class UserService {
   }
 
   optionUpdate(id: string, optionUpdateData: UserOptionUpdateData) {
+    console.log(optionUpdateData);
     let result = this.http.patch<void>(this.path + `/${id}/option`, optionUpdateData, this.options);
     result.subscribe({
       next: () => this.userOptionUpdated.emit(true),
