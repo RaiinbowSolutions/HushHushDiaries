@@ -280,6 +280,7 @@ async function updateOption(userId: SelectUserOption['user_id'], updateUserOptio
 async function isOwnerOfUserOption(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('user_options')
+    .selectAll()
     .where('user_id', '=', userId)
     .executeTakeFirst();
 
