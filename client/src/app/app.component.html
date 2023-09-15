@@ -1,0 +1,8 @@
+<app-sidebar *ngIf="!isFullview()" />
+<app-header *ngIf="!isFullview()" />
+<main [ngClass]="{'fullview': isFullview()}">
+    <router-outlet />
+</main>
+<footer *ngIf="isFullview()">
+    <app-informational-menu />
+</footer>

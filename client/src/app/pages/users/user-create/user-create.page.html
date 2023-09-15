@@ -1,0 +1,43 @@
+<h2>Create</h2>
+<div class="inputs" *ngIf="state === 'inputs'">
+    <form [formGroup]="form">
+        <input type="email" name="email" placeholder="Email address" autocomplete="email" formControlName="email" />
+        <p class="validate-message" *ngIf="email.errors?.['required'] && (email.dirty || email.touched)">Email is required.</p>
+        <p class="validate-message" *ngIf="email.errors?.['email'] && (email.dirty || email.touched)">Email must be a valid email.</p>
+        <p class="validate-message" *ngIf="email.errors?.['emailTaken'] && (email.dirty || email.touched)">Email already in use.</p>
+        <input type="password" name="password" placeholder="Password" autocomplete="new-password" formControlName="password" />
+        <p class="validate-message" *ngIf="password.errors?.['required'] && (password.dirty || password.touched)">Password is required.</p>
+        <input type="password" name="retype_password" placeholder="Retype password" autocomplete="new-password" formControlName="retype_password" />
+        <p class="validate-message" *ngIf="retype_password.errors?.['required'] && (retype_password.dirty || retype_password.touched)">Retype password is required.</p>
+        <p class="validate-message" *ngIf="form.errors?.['notMatching'] && (retype_password.dirty || retype_password.touched)">Must match password.</p>
+        <button type="reset" routerLink="/login" routerLinkActive="active">Cancel</button>
+        <button type="button" (click)="tos()" [disabled]="!form.valid">Next</button>
+    </form>
+</div>
+<div class="tos" *ngIf="state === 'tos'">
+    <div class="details" (scroll)="onScroll($event)">
+        <app-tos />
+    </div>
+    <form>
+        <button type="button" (click)="inputs()">Back</button>
+        <button type="button" (click)="puzzle()" [disabled]="!tosRead">Next</button>
+    </form>
+</div>
+<div class="puzzle" *ngIf="state === 'puzzle'">
+    <form [formGroup]="puzzle_form">
+        <label for="css">
+            <input type="radio" name="puzzle_radio" value="first" formControlName="puzzle_radio">
+            All the materials on Raiinbow Solution's Website are provided "as is".
+        </label>
+        <label for="css">
+            <input type="radio" name="puzzle_radio" value="second" formControlName="puzzle_radio">
+            Raiinbow Solution comes with warranties.
+        </label>
+        <label for="css">
+            <input type="radio" name="puzzle_radio" value="third" formControlName="puzzle_radio">
+            Raiinbow Solution or its suppliers will be hold accountable for any damages.
+        </label>
+        <button type="button" (click)="tos()">Back</button>
+        <button type="submit" (click)="create()" [disabled]="!puzzle_form.valid">Create</button>
+    </form>
+</div>

@@ -1,9 +1,25 @@
 import 'dotenv/config';
 import { APIGatewayEvent, Context } from 'aws-lambda';
 import lambda, { Request, Response } from 'lambda-api';
+import { UserRoute } from './routes/user.route';
+import { AuthenticationMiddleware } from './middleware/authentication.middleware';
+import { ErrorMiddleware } from './middleware/error.middleware';
+import { RequestRoute } from './routes/request.route';
+import { BlogRoute } from './routes/blog.route';
+import { CategoryRoute } from './routes/category.route';
+import { CommentRoute } from './routes/comment.route';
+import { MessageRoute } from './routes/message.route';
+import { PermissionRoute } from './routes/permission.route';
+import { TokenRoute } from './routes/token.route';
 
 const api = lambda({
-    base: '.netlify/functions/api'
+    base: '.netlify/functions/api',
+    logger: false,
+    errorHeaderWhitelist: [
+		'Access-Control-Allow-Origin',
+		'Access-Control-Allow-Methods',
+		'Access-Control-Allow-Headers',
+	],
 });
 
 api.options('/*', (request: Request, response: Response) => {
@@ -18,7 +34,19 @@ api.get('/', (request: Request, response: Response) => {
     return response.status(200).json({
         message
     });
-})
+});
+
+api.use(AuthenticationMiddleware());
+api.use(ErrorMiddleware());
+
+api.register(BlogRoute);
+api.register(CategoryRoute);
+api.register(CommentRoute);
+api.register(MessageRoute);
+api.register(PermissionRoute);
+api.register(RequestRoute);
+api.register(TokenRoute);
+api.register(UserRoute);
 
 api.finally(async () => {});
 

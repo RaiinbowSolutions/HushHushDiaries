@@ -1,0 +1,13 @@
+<div class="list">
+    <div class="element" *ngFor="let user of users">
+        <p>{{user.username}}#{{user.id}}</p>
+        <p class="email">{{user.email}}</p>
+        <a routerLink="/users/{{user.id}}" routerLinkActive="active" ariaCurrentWhenActive="page">View</a>
+    </div>
+</div>
+<div class="list-navigation">
+    <a *ngIf="previus !== null" routerLink="/users?page={{previus}}" routerLinkActive="active" ariaCurrentWhenActive="page">Previus</a>
+    <a *ngIf="previus === null" class="disabled">Previus</a>
+    <a *ngIf="next !== null" routerLink="/users?page={{next}}" routerLinkActive="active" ariaCurrentWhenActive="page">Next</a>
+    <a *ngIf="next === null" class="disabled">Next</a>
+</div>

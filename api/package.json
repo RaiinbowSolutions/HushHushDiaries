@@ -7,14 +7,19 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
+    "@types/crypto-js": "^4.1.1",
+    "@types/jsonwebtoken": "^9.0.2",
     "typescript": "^5.1.6"
   },
   "dependencies": {
     "@planetscale/database": "^1.10.0",
     "aws-lambda": "^1.0.7",
+    "crypto-js": "^4.1.1",
+    "crypto-random-string": "^3.3.1",
     "dotenv": "^16.3.1",
     "hashids": "^2.3.0",
-    "kysely": "^0.26.1",
+    "jsonwebtoken": "^9.0.1",
+    "kysely": "^0.26.3",
     "kysely-planetscale": "^1.4.0",
     "lambda-api": "^1.0.3"
   }

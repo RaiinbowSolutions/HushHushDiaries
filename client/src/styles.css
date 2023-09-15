@@ -1,0 +1,200 @@
+:root {
+    --dark-gray: hsl(0, 0%, 12%);
+    --dark-gray-border: hsl(0, 0%, 20%);
+    --dark-gray-text: hsl(0, 0%, 85%);
+
+    --error: hsl(5, 50%, 50%);
+    --error-text: hsl(5, 50%, 10%);
+    --warning: hsl(38, 50%, 50%);
+    --warning-text: hsl(38, 50%, 10%);
+    --informational: hsl(193, 50%, 50%);
+    --informational-text: hsl(193, 50%, 10%);
+    --confirm: hsl(123, 50%, 50%);
+    --confirm-text: hsl(123, 50%, 10%);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: cursive;
+    font-size: inherit;
+    color: inherit;
+}
+
+body {
+    position: relative;
+    height: 100vh;
+    background-color: var(--dark-gray);
+    color: var(--dark-gray-text);
+    font-size: 14px;
+}
+
+/* Global Form styles */
+
+form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding-bottom: 1rem;
+}
+
+form input {
+    grid-column: 1 / 3;
+    background-color: var(--dark-gray);
+    border: 0.0625rem dashed var(--dark-gray-border);
+    padding: 1rem;
+}
+
+form select {
+    grid-column: 1 / 3;
+    background-color: var(--dark-gray);
+    border: 0.0625rem dashed var(--dark-gray-border);
+    padding: 1rem;
+}
+
+form label {
+    grid-column: 1 / 3;
+    display: block;
+    padding: 1rem;
+}
+
+form textarea {
+    grid-column: 1 / 3;
+    background-color: var(--dark-gray);
+    padding: 1rem;
+    border: 0.0625rem dashed var(--dark-gray-border);
+}
+
+form button {
+    display: inline-block;
+    cursor: pointer;
+    background-color: var(--dark-gray);
+    padding: 1rem;
+    border: 0.0625rem dashed var(--dark-gray-border);
+}
+
+form button:disabled {
+    cursor: default;
+    color: var(--dark-gray-border);
+}
+
+form p.validate-message {
+    grid-column: 1 / 3;
+    background-color: var(--error);
+    padding: 0.5rem;
+    color: var(--error-text);
+    font-size: 1em;
+}
+
+.field {
+    grid-column: 1 / 3;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 1rem;
+}
+
+.field > label, .field > input, .field > select {
+    grid-column: auto;
+}
+
+.ng-invalid:not(form):not(.ng-untouched) {
+    border-color: var(--error);
+}
+
+.ng-valid:not(form) {
+    border-color: var(--confirm);
+}
+
+/* Global overlay styles */
+
+.cdk-overlay-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: min-content;
+    gap: 1rem;
+    width: 20rem;
+    height: 100vh;
+    padding: 1rem;
+}
+
+.cdk-global-overlay-wrapper {
+    display: block;
+    position: relative;
+}
+
+.mat-mdc-dialog-container {
+    --mdc-dialog-container-color: transparent !important;
+    --mdc-dialog-container-elevation-shadow: none !important;
+    --mdc-dialog-container-shadow-color: transparent !important;
+    --mdc-dialog-container-shape: 0 !important;
+}
+
+/* Global text styles */
+
+h1 {
+    font-size: 1.8em;
+    padding-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.6em;
+    padding-bottom: 1rem;
+}
+
+h3 {
+    font-size: 1.4em;
+    padding-bottom: 1rem;
+}
+
+h4 {
+    font-size: 1.2em;
+    padding-bottom: 1rem;
+}
+
+p {
+    font-size: 1em;
+    padding-bottom: 1rem;
+}
+
+a {
+    cursor: pointer;
+    color: var(--informational);
+}
+
+a:hover, a:active, a:focus-within {
+    color: var(--dark-gray-text);
+}
+
+ul {
+    padding: 0 1rem;
+    padding-left: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+article {
+    border: 0.0625rem dashed var(--dark-gray-border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+article > :last-child {
+    margin-bottom: 0;
+}
+
+/* Global missing style */
+
+.not_implemented {
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    gap: 1rem;
+    align-items: center;
+    color: var(--error);
+    max-width: 40em;
+    padding: 1rem;
+    border: 0.0625rem dashed var(--error);
+}

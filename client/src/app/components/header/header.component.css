@@ -1,0 +1,9 @@
+:host {
+    display: block;
+    padding: 1rem;
+    border-bottom: 0.0625rem solid var(--dark-gray-border);
+}
+
+h1 {
+    padding: 0;
+}
