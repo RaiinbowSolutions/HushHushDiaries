@@ -280,6 +280,7 @@ async function updateOption(userId: SelectUserOption['user_id'], updateUserOptio
 async function isOwnerOfUserOption(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('user_options')
+    .selectAll()
     .where('user_id', '=', userId)
     .executeTakeFirst();
 
@@ -311,6 +312,7 @@ async function updateDetail(userId: SelectUserDetail['user_id'], updateUserDetai
 async function isOwnerOfUserDetail(userId: SelectUser['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('user_details')
+    .selectAll()
     .where('user_id', '=', userId)
     .executeTakeFirst();
 
@@ -412,6 +414,7 @@ async function removePermission(userId: SelectUserPermission['user_id'], permiss
 async function isOwnerOfUserPermissions(userId: SelectUser['id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let results = await database
     .selectFrom('user_permissions')
+    .selectAll()
     .where('user_id', '=', userId)
     .offset(offset)
     .limit(limit)

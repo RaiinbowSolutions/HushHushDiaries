@@ -116,6 +116,7 @@ async function markAsApproved(commentId: SelectComment['id'], database: Kysely<D
 async function isOwnerOfComment(commentId: SelectComment['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('comments')
+    .selectAll()
     .where((expressionBuilder) => expressionBuilder.and([
         expressionBuilder('id', '=', commentId),
         expressionBuilder('author_id', '=', ownerId)
@@ -179,6 +180,7 @@ async function removeLike(userId: SelectLike['user_id'], commentId: SelectLike['
 async function isOwnerOfLike(commentId: SelectLike['refecence_id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('likes')
+    .selectAll()
     .where((expressionBuilder) => expressionBuilder.and([
         expressionBuilder('user_id', '=', ownerId),
         expressionBuilder('refecence_id', '=', commentId),

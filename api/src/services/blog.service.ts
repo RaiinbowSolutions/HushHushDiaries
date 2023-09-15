@@ -135,6 +135,7 @@ async function markAsUnpublished(blogId: SelectBlog['id'], database: Kysely<Data
 async function isOwnerOfBlog(blogId: SelectBlog['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('blogs')
+    .selectAll()
     .where((expressionBuilder) => expressionBuilder.and([
         expressionBuilder('id', '=', blogId),
         expressionBuilder('author_id', '=', ownerId)
@@ -175,6 +176,7 @@ async function owned(userId: SelectUser['id'], offset: number, limit: number, da
 async function isOwnerOfOwned(userId: SelectUser['id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let results = await database
     .selectFrom('blogs')
+    .selectAll()
     .where(ownedBlogIsListable(userId))
     .offset(offset)
     .limit(limit)
@@ -244,6 +246,7 @@ async function removeLike(userId: SelectLike['user_id'], blogId: SelectLike['ref
 async function isOwnerOfLike(blogId: SelectLike['refecence_id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('likes')
+    .selectAll()
     .where((expressionBuilder) => expressionBuilder.and([
         expressionBuilder('user_id', '=', ownerId),
         expressionBuilder('refecence_id', '=', blogId),
