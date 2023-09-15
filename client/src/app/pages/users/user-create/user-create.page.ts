@@ -43,7 +43,7 @@ export class UserCreatePage {
 
     this.puzzle_form = this.formBuilder.group({
       puzzle_radio: this.puzzle_radio,
-    }, { updateOn: 'blur' });
+    }, { updateOn: 'change' });
   }
 
   ngOnInit() {
