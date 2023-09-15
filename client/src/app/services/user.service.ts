@@ -46,7 +46,7 @@ export class UserService {
     private authService: AuthenticationService,
   ) { }
 
-  getUsers(page: number) {
+  getUsers(page: number = 1) {
     let result = this.http.get<Pagination<User>>(this.path + `?page=${page}`, this.options);
 
     return result;
@@ -70,8 +70,8 @@ export class UserService {
     return result;
   }
 
-  getUserPermissions(id: string) {
-    let result = this.http.get<Pagination<Permission>>(this.path + `${id}/permissions`, this.options);
+  getUserPermissions(id: string, page: number = 1) {
+    let result = this.http.get<Pagination<Permission>>(this.path + `${id}/permissions?page=${page}`, this.options);
 
     return result;
   }

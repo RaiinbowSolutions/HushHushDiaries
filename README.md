@@ -107,18 +107,10 @@ These packages are used in the api project.
 
 **Website packages:**
 
-[![typescript](https://img.shields.io/badge/typescript-5.1.6-informational?style=flat-square)](https://www.npmjs.com/package/typescript)
-[![eslint](https://img.shields.io/badge/eslint-8.47.0-informational?style=flat-square)](https://www.npmjs.com/package/eslint)
-[![eslint-config-next](https://img.shields.io/badge/eslint--config--next-13.4.19-informational?style=flat-square)](https://www.npmjs.com/package/eslint-config-next)
-[![next](https://img.shields.io/badge/next-13.4.19-informational?style=flat-square)](https://www.npmjs.com/package/next)
-[![react](https://img.shields.io/badge/react-18.2.0-informational?style=flat-square)](https://www.npmjs.com/package/react)
-[![react-dom](https://img.shields.io/badge/react--dom-18.2.0-informational?style=flat-square)](https://www.npmjs.com/package/react-dom)
+[![anguler](https://img.shields.io/badge/angular-16.2.0-informational?style=flat-square)](https://www.npmjs.com/package/angular)
+[![jwt-decode](https://img.shields.io/badge/jwt--decode-3.1.2-informational?style=flat-square)](https://www.npmjs.com/package/jwt-decode)
 
 These packages are used in the website project.
 
-- typescript v5.1.6
-- eslint v8.47.0
-- eslint-config-next v13.4.19
-- next v13.4.19
-- react v18.2.0
-- react-dom v18.2.0
+- angular v16.2.0
+- jwt-decode v3.1.2
