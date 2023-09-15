@@ -46,8 +46,8 @@ export class UserService {
     private authService: AuthenticationService,
   ) { }
 
-  getUsers() {
-    let result = this.http.get<Pagination<User>>(this.path, this.options);
+  getUsers(page: number) {
+    let result = this.http.get<Pagination<User>>(this.path + `?page=${page}`, this.options);
 
     return result;
   }
