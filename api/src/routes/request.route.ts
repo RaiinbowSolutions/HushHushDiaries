@@ -81,11 +81,14 @@ export const RequestRoute = (api: API, options: RegisterOptions | undefined) => 
         }),
         Authenticated(),
         async (request: Request, response: Response) => {
+            let reference_type = request.body.reference_type as CreateRequest['reference_type']; 
+
+            if (!Minify.validate(reference_type === 'blog' ? 'blogs' : reference_type === 'comment' ? 'comments' : 'users', request.body.reference_id as string)) throw new NotFoundError(`Given 'reference_id' is not an valid reference`);
+
             let authentication: Authentication = request.authentication;
             let content = request.body.content as string; 
-            let topic = request.body.content as CreateRequest['topic']; 
-            let reference_type = request.body.content as CreateRequest['reference_type']; 
-            let reference_id = Minify.decode(reference_type === 'blog' ? 'blogs' : reference_type === 'comment' ? 'comments' : 'users', request.body.content as string);
+            let topic = request.body.topic as CreateRequest['topic']; 
+            let reference_id = Minify.decode(reference_type === 'blog' ? 'blogs' : reference_type === 'comment' ? 'comments' : 'users', request.body.reference_id as string);
             let result = await RequestService.insert(authentication.id, content, topic, reference_type, reference_id);
             let id = Minify.encode('requests', result.insertId as bigint);
 
