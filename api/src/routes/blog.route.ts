@@ -102,7 +102,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_UpdateBlog
      */
-    api.post(Prefix + BaseURI + '/:id',
+    api.patch(Prefix + BaseURI + '/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             title: { type: 'string', required: false },
