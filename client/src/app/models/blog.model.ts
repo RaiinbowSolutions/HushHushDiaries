@@ -20,11 +20,11 @@ export type Blog = {
 
 export type BlogCreateData = {
     title: string;
-    keywords: string | null;
-    description: string | null;
+    keywords: string | null | undefined;
+    description: string | null | undefined;
     content: string; 
-    categoryid: string; 
-    authorid: string;
+    category_id: string; 
+    author_id: string;
 }
 
 export type BlogCreated = {
@@ -33,5 +33,5 @@ export type BlogCreated = {
     path: string,
 }
 
-export type BlogUpdateData = Omit<Partial<Blog>, 'title' | 'keywords' | 'description' | 'content' | 'categoryid' 
-| 'authorid' | 'reviewed_at' | 'deleted' | 'deleted_at' | 'published' | 'published_at' | 'approved' | 'updated_at'>;
+export type BlogUpdateData = Omit<Partial<Blog>, 'title' | 'keywords' | 'description' | 'content' | 'category_id' 
+| 'author_id' | 'reviewed_at' | 'deleted' | 'deleted_at' | 'published' | 'published_at' | 'approved' | 'updated_at'>;

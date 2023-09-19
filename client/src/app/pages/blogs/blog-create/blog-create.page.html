@@ -1,13 +1,17 @@
 <h2>Create</h2>
-<div class="inputs">
-    <br/>
-    <input type="text" placeholder="Title" /> <br />
-    <input type="text" placeholder="Author" /> <br />
-    <input type="list" placeholder="Category" /> <br />
-    <input type="text" placeholder="Keywords" /> <br />
-    <input type="text" placeholder="Description" /> <br />
-    <input type="text" placeholder="Content" /> <br />
+<form [formGroup]="form">
+    <input type="text" placeholder="Title" name="title" formControlName="title"/> 
+    <div class="field">
+        <label for="category">Category</label>
+        <select name="category" id="category" title="Category" formControlName="category_id">
+            <option [value]="null">None</option>
+            <option *ngFor="let category of categories.data" [value]="category.id">{{category.name}}</option>
+        </select>
+    </div>
+    <input type="text" placeholder="Keywords" name="keywords" formControlName="keywords"/> 
+    <input type="text" placeholder="Description" name="description" formControlName="description"/> 
+    <input type="text" placeholder="Content" name="content" formControlName="content"/> 
 
-    <button type="submit" (click)="create()">Create</button>
+    <button type="submit" (click)="create()" [disabled]="!form.valid">Create</button>
     <button type="reset" routerLink="/blogs" routerLinkActive="active">Cancel</button>
-</div>
+</form>

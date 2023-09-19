@@ -1,5 +1,18 @@
-<h1>Blogs</h1>
+<h2>Blogs</h2>
 <div class="buttons">
-    <br />
-    <button type="button" routerLink="/blogs/create" routerLinkActive="active">Create</button>
+    <form>
+        <button type="button" routerLink="/blogs/create" routerLinkActive="active">Create</button>
+    </form>
+</div>
+<div class="list">
+    <div class="element" *ngFor="let blog of blogs">
+        <p>{{blog.title}}</p>
+        <a routerLink="/blogs/{{blog.id}}" routerLinkActive="active" ariaCurrentWhenActive="page">View</a>
+    </div>
+</div>
+<div class="list-navigation">
+    <a *ngIf="previus !== null" routerLink="/blogs?page={{previus}}" routerLinkActive="active" ariaCurrentWhenActive="page">Previus</a>
+    <a *ngIf="previus === null" class="disabled">Previus</a>
+    <a *ngIf="next !== null" routerLink="/blogs?page={{next}}" routerLinkActive="active" ariaCurrentWhenActive="page">Next</a>
+    <a *ngIf="next === null" class="disabled">Next</a>
 </div>

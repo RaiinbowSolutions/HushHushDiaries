@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { EventEmitter, Injectable } from "@angular/core";
 import { Pagination } from "../models/pagination.model";
 import { Blog, BlogCreateData, BlogCreated, BlogUpdateData } from "../models/blog.model";
+import { AuthenticationService } from "./authentication.service";
 
 @Injectable({
     providedIn: 'root'
@@ -12,6 +13,7 @@ export class BlogService {
     private options = {
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': this.authService.getAuthenticationHeader(),
         }
     };
 
@@ -23,6 +25,7 @@ export class BlogService {
     blogReviewFailed: EventEmitter<boolean> = new EventEmitter<boolean>();
     blogPublishFailed: EventEmitter<boolean> = new EventEmitter<boolean>();
     blogUnpublishFailed: EventEmitter<boolean> = new EventEmitter<boolean>();
+    blogOwnedFailed: EventEmitter<boolean> = new EventEmitter<boolean>();
 
     blogCreated: EventEmitter<boolean> = new EventEmitter<boolean>();
     blogUpdated: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -32,19 +35,28 @@ export class BlogService {
     blogReviewed: EventEmitter<boolean> = new EventEmitter<boolean>();
     blogPublished: EventEmitter<boolean> = new EventEmitter<boolean>();
     blogUnpublished: EventEmitter<boolean> = new EventEmitter<boolean>();
+    blogOwned: EventEmitter<boolean> = new EventEmitter<boolean>();
 
     constructor(
         private http: HttpClient,
+        private authService: AuthenticationService,
     ) { }
 
-    getBlogs() {
-        let result = this.http.get<Pagination<Blog>>(this.path, this.options);
+    getBlogs(page: number = 1) {
+        let result = this.http.get<Pagination<Blog>>(this.path + `?page=${page}`, this.options);
 
         return result;
     }
 
     getBlog(id: string) {
-        let result = this.http.get<Blog>(this.path + `${id}`, this.options);
+        let result = this.http.get<Blog>(this.path + `/${id}`, this.options);
+
+        return result;
+    }
+
+    getOwned(page: number = 1) {
+        let id = this.authService.getUserId() as string;
+        let result = this.http.get<Pagination<Blog>>(this.path + `/${id}/owned?page=${page}`, this.options);
 
         return result;
     }
