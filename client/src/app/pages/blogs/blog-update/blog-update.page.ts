@@ -39,6 +39,7 @@ export class BlogUpdatePage {
   categoriesSubscription: Subscription | null = null;
   updateBlogSubscription: Subscription | null = null;
   usersSubscription: Subscription | null = null;
+  deactivateBlogSubscription: Subscription | null = null;
 
   private getParamsSubscription: Subscription | null = null;
   private getBlogSubscription: Subscription | null = null;
@@ -127,5 +128,19 @@ export class BlogUpdatePage {
 
   performDeactivate() {
     this.blogService.deactivate(this.id);
+    this.deactivateBlogSubscription = this.blogService.blogDeactivated.subscribe({
+      next:() => {
+        this.router.navigateByUrl('/blogs/owned');
+      }
+    })
+  }
+
+  ngDestroy() {
+    this.getParamsSubscription?.unsubscribe();
+    this.updateBlogSubscription?.unsubscribe();
+    this.deactivateBlogSubscription?.unsubscribe();
+    this.categoriesSubscription?.unsubscribe();
+    this.usersSubscription?.unsubscribe();
+    this.getBlogSubscription?.unsubscribe();
   }
 }

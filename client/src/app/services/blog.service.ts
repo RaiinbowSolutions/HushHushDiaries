@@ -92,7 +92,7 @@ export class BlogService {
     }
 
     deactivate(id: string) {
-        let result = this.http.post<void>(this.path + `/${id}/deactivate`, this.options);
+        let result = this.http.post<void>(this.path + `/${id}/deactivate`, {}, this.options);
         result.subscribe({
             next: () => this.blogDeactivated.emit(true), 
             error: () => this.blogDeactivateFailed.emit(true),
@@ -102,7 +102,7 @@ export class BlogService {
     }
 
     approve(id: string) {
-        let result = this.http.post<void>(this.path + `/${id}/approve`, this.options);
+        let result = this.http.post<void>(this.path + `/${id}/approve`, {}, this.options);
         result.subscribe({
             next: () => this.blogApproved.emit(true), 
             error: () => this.blogApproveFailed.emit(true),
@@ -112,7 +112,7 @@ export class BlogService {
     }
 
     review(id: string) {
-        let result = this.http.post<void>(this.path + `/${id}/review`, this.options);
+        let result = this.http.post<void>(this.path + `/${id}/review`, {}, this.options);
         result.subscribe({
             next: () => this.blogReviewed.emit(true),
             error: () => this.blogReviewFailed.emit(true),
@@ -122,7 +122,7 @@ export class BlogService {
     }
 
     publish(id: string) {
-        let result = this.http.post<void>(this.path + `/${id}/publish`, this.options);
+        let result = this.http.post<void>(this.path + `/${id}/publish`, {}, this.options);
         result.subscribe({
             next: () => this.blogPublished.emit(true),
             error: () => this.blogPublishFailed.emit(true),
@@ -132,7 +132,7 @@ export class BlogService {
     }
 
     unpublish(id: string) {
-        let result = this.http.post<void>(this.path + `/${id}/publish`, this.options);
+        let result = this.http.post<void>(this.path + `/${id}/publish`, {}, this.options);
         result.subscribe({
             next: () => this.blogUnpublished.emit(true), 
             error: () => this.blogUnpublishFailed.emit(true),
