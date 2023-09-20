@@ -116,6 +116,7 @@ async function markAsReviewed(messageId: SelectMessage['id'], database: Kysely<D
 async function isOwnerOfMessage(messageId: SelectMessage['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('messages')
+    .selectAll()
     .where((expressionBuilder) => expressionBuilder.and([
         expressionBuilder('id', '=', messageId),
         expressionBuilder('sender_id', '=', ownerId)
@@ -156,6 +157,7 @@ async function selectOutgoings(userId: SelectMessage['sender_id'], offset: numbe
 async function isOwnerOfOutgoins(userId: SelectMessage['sender_id'], ownerId: SelectUser['id'], offset: number, limit: number, database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let results = await database
     .selectFrom('messages')
+    .selectAll()
     .where(OutgoingMessageIsListable(userId))
     .offset(offset)
     .limit(limit)

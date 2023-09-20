@@ -1,1 +1,38 @@
-<p>blog-update works!</p>
+<nav>
+    <h2>Navigation</h2>
+    <button (click)="openBlogEdit()">Data</button>
+    <button (click)="openDeactivateBlog()">Deactivate</button>
+</nav>
+<div>
+    <div class="edit" *ngIf="state === 'edit'">
+        <h2>Update</h2>
+        <form [formGroup]="form">
+            <input type="text" placeholder="Title" name="title" formControlName="title"/> 
+            <div class="field">
+                <label for="author">Author</label>
+                <select name="author" id="author" title="Author" formControlName="author_id">
+                    <option *ngFor="let user of users.data" [value]="user.id">{{user.username}}#{{user.id}}</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="category">Category</label>
+                <select name="category" id="category" title="Category" formControlName="category_id">
+                    <option [value]="null">None</option>
+                    <option *ngFor="let category of categories.data" [value]="category.id">{{category.name}}</option>
+                </select>
+            </div>
+            <input type="text" placeholder="Keywords" name="keywords" formControlName="keywords"/> 
+            <input type="text" placeholder="Description" name="description" formControlName="description"/> 
+            <input type="text" placeholder="Content" name="content" formControlName="content"/> 
+
+            <button type="submit" (click)="update()" [disabled]="!form.valid">Update</button>
+            <button type="reset" routerLink="/blogs/owned" routerLinkActive="active">Cancel</button>
+        </form>
+    </div>
+    <div class="deactivate" *ngIf="state === 'deactivate'">
+        <h2>Deactivate</h2>
+        <form [formGroup]="form_deactivate">
+            <button (click)="deactivate()" [disabled]="!form_deactivate.valid">Deactivate Blog</button>
+        </form>
+    </div>
+</div>

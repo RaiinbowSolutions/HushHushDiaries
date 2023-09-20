@@ -96,6 +96,7 @@ async function markAsReviewed(requestId: SelectRequest['id'], database: Kysely<D
 async function isOwnerOfRequest(requestId: SelectRequest['id'], ownerId: SelectUser['id'], database: Kysely<DatabaseSchema> | Transaction<DatabaseSchema> = Database): Promise<boolean> {
     let result = await database
     .selectFrom('requests')
+    .selectAll()
     .where((expressionBuilder) => expressionBuilder.and([
         expressionBuilder('id', '=', requestId),
         expressionBuilder('sender_id', '=', ownerId)

@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { EventEmitter, Injectable } from "@angular/core";
 import { Pagination } from "../models/pagination.model";
 import { Category } from "../models/category.model";
+import { AuthenticationService } from "./authentication.service";
 
 @Injectable({
     providedIn: 'root'
@@ -13,6 +14,7 @@ export class CategoryService {
     private options = {
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': this.authService.getAuthenticationHeader(),
         }
     }
     
@@ -24,6 +26,7 @@ export class CategoryService {
 
     constructor(
         private http: HttpClient,
+        private authService: AuthenticationService,
     ) { }
 
     getCategories() {

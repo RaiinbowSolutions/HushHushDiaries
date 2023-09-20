@@ -80,6 +80,8 @@ export const MessageRoute = (api: API, options: RegisterOptions | undefined) => 
         }),
         Authenticated(),
         async(request: Request, response: Response) => {
+            if (!Minify.validate('users', request.body.receiver_id as string)) throw new NotFoundError(`Given 'receiver_id' is not an valid user`);
+
             let authentication: Authentication = request.authentication;
             let content = request.body.content as string;
             let topic = request.body.topic as CreateMessage['topic'];

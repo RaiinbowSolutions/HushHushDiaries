@@ -79,8 +79,8 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
         }),
         Authenticated(),
         async(request: Request, response: Response) => {
-            if (!Minify.validate('categories', request.params.category_id as string)) throw new NotFoundError(`Given 'category_id' is not an valid category`);
-            if (!Minify.validate('users', request.params.author_id as string)) throw new NotFoundError(`Given 'author_id' is not an valid user`);
+            if (!Minify.validate('categories', request.body.category_id as string)) throw new NotFoundError(`Given 'category_id' is not an valid category`);
+            if (!Minify.validate('users', request.body.author_id as string)) throw new NotFoundError(`Given 'author_id' is not an valid user`);
 
             let title = request.body.title as string;
             let keywords = request.body.keywords as string | undefined;
@@ -102,7 +102,7 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
     /**
      * @alias BlogRoute_UpdateBlog
      */
-    api.post(Prefix + BaseURI + '/:id',
+    api.patch(Prefix + BaseURI + '/:id',
         ValidateMiddleware('params', { id: 'string' }),
         ValidateMiddleware('body', {
             title: { type: 'string', required: false },
@@ -116,6 +116,8 @@ export const BlogRoute = (api: API, options: RegisterOptions | undefined) => {
         RequiredMiddleware('blogs', AllowOwner, 'update-blog'),
         async(request: Request, response: Response) => {
             if (!Minify.validate('blogs', request.params.id as string)) throw new NotFoundError('Blog not found');
+            if (request.body.category_id && !Minify.validate('categories', request.body.category_id as string)) throw new NotFoundError(`Given 'category_id' is not an valid category`);
+            if (request.body.author_id && !Minify.validate('users', request.body.author_id as string)) throw new NotFoundError(`Given 'author_id' is not an valid user`);
 
             let id = Minify.decode('blogs', request.params.id as string);
             let title = request.body.title as string | undefined;
